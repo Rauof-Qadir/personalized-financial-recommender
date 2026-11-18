@@ -1,0 +1,51 @@
+item_id,product_name,category,description,tags,available,minimum_age,popularity_score,interaction_count,unique_users
+P012,Retirement Planning Basics,financial_planning,Educational resource about financial planning and personal financial knowledge.,financial_planning|financial_education|personal_finance,True,18,702,372,273
+P030,Financial Planning Guide,financial_planning,Educational resource about financial planning and personal financial knowledge.,financial_planning|financial_education|personal_finance,True,18,687,386,288
+P006,Financial Planning Guide,financial_planning,Educational resource about financial planning and personal financial knowledge.,financial_planning|financial_education|personal_finance,True,18,676,379,286
+P011,Insurance Basics,insurance,Educational resource about insurance and personal financial knowledge.,insurance|financial_education|personal_finance,True,18,675,362,276
+P041,Understanding Life Insurance,insurance,Educational resource about insurance and personal financial knowledge.,insurance|financial_education|personal_finance,True,18,674,361,272
+P026,Monthly Budget Planner,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,True,18,670,374,273
+P013,Emergency Fund Guide,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,False,18,669,378,271
+P045,Credit Score Education,credit,Educational resource about credit and personal financial knowledge.,credit|financial_education|personal_finance,True,18,658,359,258
+P028,Investment Fundamentals,investing,Educational resource about investing and personal financial knowledge.,investing|financial_education|personal_finance,True,18,652,336,258
+P040,Understanding Diversification,investing,Educational resource about investing and personal financial knowledge.,investing|financial_education|personal_finance,True,18,648,364,279
+P042,Financial Goal Setting,financial_planning,Educational resource about financial planning and personal financial knowledge.,financial_planning|financial_education|personal_finance,True,18,648,349,262
+P018,Financial Planning Guide,financial_planning,Educational resource about financial planning and personal financial knowledge.,financial_planning|financial_education|personal_finance,True,18,645,348,269
+P016,Long-Term Investing Education,investing,Educational resource about investing and personal financial knowledge.,investing|financial_education|personal_finance,True,18,639,362,268
+P015,Responsible Credit Management,credit,Educational resource about credit and personal financial knowledge.,credit|financial_education|personal_finance,True,18,632,336,254
+P025,Savings Fundamentals,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,True,18,628,364,270
+P020,Monthly Budget Planner,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,True,18,626,341,256
+P049,Savings Fundamentals,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,True,18,624,345,257
+P038,Personal Budgeting Basics,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,False,18,624,337,249
+P031,Savings Fundamentals,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,True,18,623,345,260
+P032,Expense Tracking Guide,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,True,18,620,332,267
+P037,Savings Fundamentals,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,True,18,616,361,276
+P034,Understanding Diversification,investing,Educational resource about investing and personal financial knowledge.,investing|financial_education|personal_finance,True,18,616,350,258
+P039,Understanding Credit Reports,credit,Educational resource about credit and personal financial knowledge.,credit|financial_education|personal_finance,True,18,614,354,267
+P044,Expense Tracking Guide,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,True,18,614,336,242
+P029,Risk Protection Education,insurance,Educational resource about insurance and personal financial knowledge.,insurance|financial_education|personal_finance,False,18,606,335,250
+P035,Risk Protection Education,insurance,Educational resource about insurance and personal financial knowledge.,insurance|financial_education|personal_finance,True,18,602,321,254
+P008,Expense Tracking Guide,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,True,18,601,351,273
+P014,Expense Tracking Guide,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,False,18,599,317,244
+P048,Retirement Planning Basics,financial_planning,Educational resource about financial planning and personal financial knowledge.,financial_planning|financial_education|personal_finance,True,18,595,350,269
+P009,Understanding Credit Reports,credit,Educational resource about credit and personal financial knowledge.,credit|financial_education|personal_finance,True,18,595,331,246
+P019,Understanding Interest,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,True,18,594,328,254
+P027,Understanding Credit Reports,credit,Educational resource about credit and personal financial knowledge.,credit|financial_education|personal_finance,True,18,594,325,250
+P023,Risk Protection Education,insurance,Educational resource about insurance and personal financial knowledge.,insurance|financial_education|personal_finance,True,18,593,330,253
+P021,Credit Score Education,credit,Educational resource about credit and personal financial knowledge.,credit|financial_education|personal_finance,True,18,592,333,240
+P003,Responsible Credit Management,credit,Educational resource about credit and personal financial knowledge.,credit|financial_education|personal_finance,True,18,585,337,254
+P022,Investment Fundamentals,investing,Educational resource about investing and personal financial knowledge.,investing|financial_education|personal_finance,True,18,584,333,260
+P001,Emergency Fund Guide,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,False,18,584,326,251
+P005,Understanding Life Insurance,insurance,Educational resource about insurance and personal financial knowledge.,insurance|financial_education|personal_finance,True,18,581,323,254
+P036,Financial Planning Guide,financial_planning,Educational resource about financial planning and personal financial knowledge.,financial_planning|financial_education|personal_finance,True,18,580,330,258
+P002,Monthly Budget Planner,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,True,18,578,320,239
+P043,Understanding Interest,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,True,18,577,327,254
+P007,Understanding Interest,savings,Educational resource about savings and personal financial knowledge.,savings|financial_education|personal_finance,True,18,576,318,247
+P010,Understanding Diversification,investing,Educational resource about investing and personal financial knowledge.,investing|financial_education|personal_finance,True,18,566,323,239
+P024,Financial Goal Setting,financial_planning,Educational resource about financial planning and personal financial knowledge.,financial_planning|financial_education|personal_finance,True,18,561,326,246
+P033,Responsible Credit Management,credit,Educational resource about credit and personal financial knowledge.,credit|financial_education|personal_finance,True,18,553,328,260
+P017,Risk Protection Education,insurance,Educational resource about insurance and personal financial knowledge.,insurance|financial_education|personal_finance,True,18,549,317,247
+P050,Personal Budgeting Basics,budgeting,Educational resource about budgeting and personal financial knowledge.,budgeting|financial_education|personal_finance,False,18,548,320,258
+P046,Understanding Diversification,investing,Educational resource about investing and personal financial knowledge.,investing|financial_education|personal_finance,True,18,541,320,239
+P004,Understanding Diversification,investing,Educational resource about investing and personal financial knowledge.,investing|financial_education|personal_finance,True,18,527,309,244
+P047,Understanding Life Insurance,insurance,Educational resource about insurance and personal financial knowledge.,insurance|financial_education|personal_finance,True,18,497,291,233
