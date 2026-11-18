@@ -13,10 +13,7 @@
   <img src="https://img.shields.io/badge/Recommendation-Hybrid-blue" alt="Hybrid recommendation"/>
 </p>
 
-<p align="center">
-  <a href="https://github.com/Rauof-Qadir/personalized-financial-recommender">GitHub Repository</a>
-</p>
----
+
 
 ## Overview
 
