@@ -1,3 +1,4 @@
+
 from src.recommenders.hybrid import (
     recommend_hybrid,
     DEFAULT_WEIGHTS,
@@ -10,7 +11,6 @@ import joblib
 import plotly.express as px
 import pandas as pd
 import streamlit as st
-
 
 
 # --------------------------------------------------
@@ -38,7 +38,541 @@ st.set_page_config(
 
 
 # --------------------------------------------------
-# 3. LOAD PROJECT DATA
+# 3. PREMIUM FINTECH DESIGN SYSTEM
+# --------------------------------------------------
+
+st.markdown(
+    """
+    <style>
+
+    @import url(
+        'https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap'
+    );
+
+    :root {
+        --primary: #2563EB;
+        --primary-dark: #1D4ED8;
+        --navy: #101B35;
+        --navy-light: #192846;
+        --background: #F4F7FC;
+        --surface: #FFFFFF;
+        --text-primary: #172033;
+        --text-secondary: #64748B;
+        --border: #E7ECF3;
+        --success: #059669;
+        --danger: #DC5252;
+        --radius: 15px;
+    }
+
+    html, body, [class*="css"] {
+        font-family: 'DM Sans', sans-serif;
+    }
+
+    .stApp {
+        background: var(--background);
+    }
+
+    .main .block-container {
+        max-width: 1600px;
+        padding-top: 2rem;
+        padding-bottom: 3rem;
+        padding-left: 3rem;
+        padding-right: 3rem;
+    }
+
+    h1, h2, h3, h4 {
+        font-family: 'Manrope', sans-serif !important;
+        color: var(--text-primary) !important;
+        letter-spacing: -0.5px;
+    }
+
+    h1 {
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+    }
+
+    h2 {
+        font-size: 1.55rem !important;
+        font-weight: 750 !important;
+    }
+
+    h3 {
+        font-size: 1.15rem !important;
+        font-weight: 750 !important;
+    }
+
+    p, label, .stCaption {
+        color: var(--text-secondary);
+    }
+
+    /* SIDEBAR */
+
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(
+            180deg,
+            #101B35 0%,
+            #152442 100%
+        );
+        border-right: 1px solid #263754;
+    }
+
+    section[data-testid="stSidebar"] > div {
+        padding: 1.5rem 1rem;
+    }
+
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] label,
+    section[data-testid="stSidebar"] span {
+        color: #E8EEF9 !important;
+    }
+
+    section[data-testid="stSidebar"] [data-testid="stRadio"] label {
+        background: transparent;
+        border-radius: 9px;
+        padding: 9px 12px;
+        margin-bottom: 5px;
+        transition: all 0.2s ease;
+    }
+
+    section[data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+        background: #263958;
+    }
+
+    section[data-testid="stSidebar"] [data-testid="stRadio"] p {
+        font-weight: 600;
+        font-size: 0.91rem;
+    }
+
+    section[data-testid="stSidebar"] hr {
+        border-color: #34445F;
+    }
+
+    /* HERO */
+
+    .hero-banner {
+        background: linear-gradient(
+            115deg,
+            #101B35 0%,
+            #1B3765 55%,
+            #2563EB 100%
+        );
+        border-radius: 18px;
+        padding: 30px 34px;
+        margin-bottom: 24px;
+        color: white;
+        box-shadow: 0 10px 30px rgba(16, 27, 53, 0.12);
+    }
+
+    .hero-eyebrow {
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #BBD3FF;
+        margin-bottom: 10px;
+    }
+
+    .hero-title {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.9rem;
+        font-weight: 800;
+        line-height: 1.25;
+        color: #FFFFFF;
+        margin-bottom: 10px;
+    }
+
+    .hero-description {
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: #D9E6FF;
+        max-width: 850px;
+        margin-bottom: 0;
+    }
+
+    /* METRIC CARDS */
+
+    [data-testid="stMetric"] {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 18px 20px;
+        box-shadow: 0 3px 12px rgba(15, 23, 42, 0.035);
+        min-height: 112px;
+        transition: all 0.2s ease;
+    }
+
+    [data-testid="stMetric"]:hover {
+        border-color: #B9CDFB;
+        box-shadow: 0 7px 20px rgba(37, 99, 235, 0.08);
+        transform: translateY(-2px);
+    }
+
+    [data-testid="stMetricLabel"] p {
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        color: #64748B !important;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-family: 'Manrope', sans-serif;
+        font-size: 1.75rem !important;
+        font-weight: 800 !important;
+        color: #172033 !important;
+    }
+
+    /* BUTTONS */
+
+    .stButton > button,
+    .stFormSubmitButton > button {
+        background: linear-gradient(
+            135deg,
+            #2563EB,
+            #1D4ED8
+        );
+        color: white;
+        border: none;
+        border-radius: 9px;
+        padding: 0.65rem 1.15rem;
+        font-weight: 700;
+        font-size: 0.88rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15);
+    }
+
+    .stButton > button:hover,
+    .stFormSubmitButton > button:hover {
+        background: #1D4ED8;
+        color: white;
+        border: none;
+        box-shadow: 0 7px 15px rgba(37, 99, 235, 0.24);
+        transform: translateY(-1px);
+    }
+
+    /* INPUTS */
+
+    div[data-baseweb="select"] > div {
+        border-radius: 9px;
+        border-color: #DCE3EE;
+        background: white;
+    }
+
+    div[data-baseweb="select"] > div:focus-within {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .stTextInput input,
+    .stNumberInput input {
+        border-radius: 9px;
+    }
+
+    .stSlider [data-baseweb="slider"] {
+        padding-top: 8px;
+    }
+
+    /* TABLES */
+
+    [data-testid="stDataFrame"] {
+        border: 1px solid var(--border);
+        border-radius: 11px;
+        overflow: hidden;
+        background: white;
+    }
+
+    /* CHART CONTAINERS */
+
+    [data-testid="stPlotlyChart"] {
+        background: #FFFFFF;
+        border: 1px solid #E5EAF2;
+        border-radius: 16px;
+        padding: 12px;
+        box-shadow: 0 5px 18px rgba(15, 23, 42, 0.035);
+        transition: box-shadow 0.2s ease;
+    }
+
+    [data-testid="stPlotlyChart"]:hover {
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.065);
+    }
+
+    /* ALERTS */
+
+    [data-testid="stAlert"] {
+        border-radius: 10px;
+        border-width: 1px;
+    }
+
+    /* FORMS */
+
+    [data-testid="stForm"] {
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        padding: 20px;
+    }
+
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        border-radius: 13px;
+    }
+
+    /* DIVIDERS */
+
+    hr {
+        border-color: var(--border);
+        margin-top: 1.4rem;
+        margin-bottom: 1.4rem;
+    }
+
+    .stCaption {
+        font-size: 0.79rem;
+        line-height: 1.6;
+    }
+
+    /* FOOTER */
+
+    .app-footer {
+        text-align: center;
+        color: #94A3B8;
+        font-size: 0.77rem;
+        padding: 24px 0 5px 0;
+        border-top: 1px solid var(--border);
+        margin-top: 35px;
+    }
+
+    .app-footer strong {
+        color: #475569;
+    }
+
+    /* RESPONSIVE */
+
+    @media (max-width: 900px) {
+        .main .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+
+        .hero-banner {
+            padding: 22px;
+        }
+
+        .hero-title {
+            font-size: 1.45rem;
+        }
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# --------------------------------------------------
+# 4. PREMIUM PLOTLY CHART DESIGN SYSTEM
+# --------------------------------------------------
+
+CHART_COLORS = [
+    "#2563EB",
+    "#0D9488",
+    "#8B5CF6",
+    "#F59E0B",
+    "#EC4899",
+    "#06B6D4",
+    "#64748B",
+    "#16A34A",
+    "#EA580C",
+    "#6366F1",
+]
+
+CHART_BACKGROUND = "#FFFFFF"
+CHART_TEXT = "#334155"
+CHART_MUTED = "#64748B"
+CHART_GRID = "#EDF1F7"
+
+
+def style_chart(
+    fig,
+    height=430,
+    show_legend=True,
+    horizontal=False,
+):
+    """
+    Apply consistent premium styling to every Plotly chart.
+
+    This function changes chart presentation only.
+    It does not modify the underlying chart data or calculations.
+    """
+
+    fig.update_layout(
+        template="plotly_white",
+        height=height,
+        autosize=True,
+        colorway=CHART_COLORS,
+        font=dict(
+            family="DM Sans, sans-serif",
+            size=12,
+            color=CHART_TEXT,
+        ),
+        title=dict(
+            font=dict(
+                family="Manrope, sans-serif",
+                size=18,
+                color="#172033",
+            ),
+            x=0.025,
+            xanchor="left",
+            y=0.97,
+            yanchor="top",
+        ),
+        paper_bgcolor=CHART_BACKGROUND,
+        plot_bgcolor=CHART_BACKGROUND,
+        margin=dict(
+            l=35,
+            r=35,
+            t=75,
+            b=45,
+        ),
+        showlegend=show_legend,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="right",
+            x=1,
+            font=dict(
+                size=11,
+                color="#475569",
+            ),
+            bgcolor="rgba(255,255,255,0.75)",
+            borderwidth=0,
+        ),
+        hoverlabel=dict(
+            bgcolor="#101B35",
+            bordercolor="#263754",
+            font=dict(
+                family="DM Sans, sans-serif",
+                size=12,
+                color="#FFFFFF",
+            ),
+            align="left",
+        ),
+        hovermode="closest",
+        bargap=0.30,
+        bargroupgap=0.12,
+        transition=dict(
+            duration=250,
+            easing="cubic-in-out",
+        ),
+    )
+
+    fig.update_xaxes(
+        showgrid=True,
+        gridcolor=CHART_GRID,
+        gridwidth=1,
+        zeroline=False,
+        showline=False,
+        linecolor="#E2E8F0",
+        tickfont=dict(
+            family="DM Sans, sans-serif",
+            size=11,
+            color=CHART_MUTED,
+        ),
+        title_font=dict(
+            family="DM Sans, sans-serif",
+            size=12,
+            color="#475569",
+        ),
+        ticks="outside",
+        tickcolor="#CBD5E1",
+        automargin=True,
+    )
+
+    fig.update_yaxes(
+        showgrid=True,
+        gridcolor=CHART_GRID,
+        gridwidth=1,
+        zeroline=False,
+        showline=False,
+        linecolor="#E2E8F0",
+        tickfont=dict(
+            family="DM Sans, sans-serif",
+            size=11,
+            color=CHART_MUTED,
+        ),
+        title_font=dict(
+            family="DM Sans, sans-serif",
+            size=12,
+            color="#475569",
+        ),
+        ticks="outside",
+        tickcolor="#CBD5E1",
+        automargin=True,
+    )
+
+    # BAR CHART POLISH
+
+    fig.update_traces(
+        selector=dict(type="bar"),
+        marker_line_width=1,
+        marker_line_color="rgba(255,255,255,0.85)",
+        opacity=0.94,
+        textfont=dict(
+            family="DM Sans, sans-serif",
+            size=11,
+            color="#334155",
+        ),
+        cliponaxis=False,
+    )
+
+    # LINE CHART POLISH
+
+    fig.update_traces(
+        selector=dict(type="scatter", mode="lines+markers"),
+        line=dict(
+            width=3,
+            shape="spline",
+        ),
+        marker=dict(
+            size=7,
+            line=dict(
+                width=2,
+                color="#FFFFFF",
+            ),
+        ),
+    )
+
+    # PIE AND DONUT CHART POLISH
+
+    fig.update_traces(
+        selector=dict(type="pie"),
+        textinfo="label+percent",
+        textposition="inside",
+        insidetextorientation="horizontal",
+        textfont=dict(
+            family="DM Sans, sans-serif",
+            size=11,
+            color="#FFFFFF",
+        ),
+        marker=dict(
+            line=dict(
+                color="#FFFFFF",
+                width=3,
+            ),
+        ),
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            "Count: %{value:,}<br>"
+            "Share: %{percent}"
+            "<extra></extra>"
+        ),
+    )
+
+    return fig
+
+
+# --------------------------------------------------
+# 5. LOAD PROJECT DATA
 # --------------------------------------------------
 
 @st.cache_data
@@ -57,12 +591,14 @@ def load_json(file_path):
     with file_path.open("r", encoding="utf-8") as file:
         return json.load(file)
 
+
 @st.cache_resource
 def load_recommender_artifacts():
     if not ARTIFACT_PATH.exists():
         return None
 
     return joblib.load(ARTIFACT_PATH)
+
 
 customers = load_csv(DATA_DIR / "customers.csv")
 products = load_csv(DATA_DIR / "products.csv")
@@ -79,48 +615,106 @@ quality_report = load_json(REPORTS_DIR / "data_quality_report.json")
 
 
 # --------------------------------------------------
-# 4. SIDEBAR
+# 6. SIDEBAR
 # --------------------------------------------------
 
-st.sidebar.title("FinReco")
-st.sidebar.caption("Financial Product Intelligence Platform")
+st.sidebar.markdown(
+    """
+    <div style="
+        padding: 12px 8px 20px 8px;
+        text-align: left;
+    ">
+        <div style="
+            font-family: Manrope, sans-serif;
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #FFFFFF;
+            letter-spacing: -1px;
+        ">
+            Fin<span style="color:#60A5FA;">Reco.</span>
+        </div>
+        <div style="
+            font-size: 0.72rem;
+            color: #AFC3E5;
+            letter-spacing: 1.3px;
+            text-transform: uppercase;
+            margin-top: 4px;
+        ">
+            Financial Intelligence
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 page = st.sidebar.radio(
-    "Navigation",
+    "NAVIGATION",
     [
-    "Executive Overview",
-    "Recommendation Analytics",
-    "Personalized Explorer",
-    "Customer Insights",
-    "Product Analytics",
-    "API Monitoring",
-],
+        "Executive Overview",
+        "Recommendation Analytics",
+        "Personalized Explorer",
+        "Customer Insights",
+        "Product Analytics",
+        "API Monitoring",
+    ],
 )
 
 st.sidebar.divider()
-st.sidebar.caption("Version 1.0 | Portfolio Project")
 
-
-# --------------------------------------------------
-# 5. DASHBOARD HEADER
-# --------------------------------------------------
-
-st.title("Financial Recommendation Intelligence")
-st.caption(
-    "A data-driven platform for personalized financial "
-    "product recommendations and system monitoring."
+st.sidebar.markdown(
+    """
+    <div style="
+        padding: 12px 8px;
+        color: #9DB0CD;
+        font-size: 0.72rem;
+        line-height: 1.8;
+    ">
+        <strong style="color:#E5EDFA;">FINRECO PLATFORM</strong><br>
+        Version 1.0<br>
+        Recommendation Intelligence<br>
+        Built with Python & Machine Learning
+    </div>
+    """,
+    unsafe_allow_html=True,
 )
 
-st.divider()
+
+# --------------------------------------------------
+# 7. DASHBOARD HEADER
+# --------------------------------------------------
+
+st.markdown(
+    """
+    <div class="hero-banner">
+        <div class="hero-eyebrow">
+            FINANCIAL INTELLIGENCE PLATFORM
+        </div>
+        <div class="hero-title">
+            Financial Recommendation Intelligence
+        </div>
+        <div class="hero-description">
+            A data-driven platform for personalized financial
+            product discovery, explainable recommendations,
+            customer insights and system performance monitoring.
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 # --------------------------------------------------
-# 6. EXECUTIVE OVERVIEW
+# 8. EXECUTIVE OVERVIEW
 # --------------------------------------------------
 
 if page == "Executive Overview":
 
     st.subheader("Executive Overview")
+
+    st.caption(
+        "A consolidated view of customer activity, product availability "
+        "and recommendation model performance."
+    )
 
     total_customers = len(customers)
     total_products = len(products)
@@ -143,7 +737,6 @@ if page == "Executive Overview":
     col4.metric("Consented Customers", f"{consented_customers:,}")
 
     st.divider()
-
 
     st.subheader("Recommendation Model Performance")
 
@@ -199,21 +792,17 @@ if page == "Executive Overview":
 
 
 # --------------------------------------------------
-# 7. OTHER PAGES — UNDER DEVELOPMENT
+# 9. RECOMMENDATION ANALYTICS
 # --------------------------------------------------
-
 
 elif page == "Recommendation Analytics":
 
     st.subheader("Recommendation Analytics")
+
     st.caption(
         "Offline recommendation analysis using the project's "
         "synthetic financial dataset."
     )
-
-    # ----------------------------------------------
-    # MODEL EVALUATION KPIs
-    # ----------------------------------------------
 
     metric_cols = st.columns(4)
 
@@ -244,9 +833,7 @@ elif page == "Recommendation Analytics":
 
     st.divider()
 
-    # ----------------------------------------------
     # TOP POPULAR PRODUCTS
-    # ----------------------------------------------
 
     st.subheader("Most Popular Financial Products")
 
@@ -269,12 +856,25 @@ elif page == "Recommendation Analytics":
                 "product_name": "Financial Product",
                 "category": "Category",
             },
+            color_discrete_sequence=CHART_COLORS,
+        )
+
+        fig_popularity.update_traces(
+            texttemplate="%{text:,}",
+            textposition="outside",
+            marker_line_width=0,
+        )
+
+        style_chart(
+            fig_popularity,
+            height=490,
         )
 
         fig_popularity.update_layout(
-            height=480,
+            xaxis_title="Total Interactions",
             yaxis_title="",
-            legend_title="Category",
+            legend_title="Product Category",
+            margin=dict(l=20, r=55, t=80, b=45),
         )
 
         st.plotly_chart(
@@ -284,9 +884,7 @@ elif page == "Recommendation Analytics":
 
     st.divider()
 
-    # ----------------------------------------------
     # HYBRID RECOMMENDATION SCORES
-    # ----------------------------------------------
 
     st.subheader("Hybrid Recommendation Score Analysis")
 
@@ -315,13 +913,31 @@ elif page == "Recommendation Analytics":
                 "product_name": "Financial Product",
                 "Score": "Normalized Score",
             },
+            color_discrete_sequence=CHART_COLORS,
+        )
+
+        fig_scores.update_traces(
+            hovertemplate=(
+                "<b>%{x}</b><br>"
+                "Score: %{y:.4f}"
+                "<extra></extra>"
+            ),
+        )
+
+        style_chart(
+            fig_scores,
+            height=510,
         )
 
         fig_scores.update_layout(
-            height=500,
             xaxis_title="",
-            yaxis_range=[0, 1.05],
+            yaxis_range=[0, 1.12],
             legend_title="Scoring Method",
+            margin=dict(l=25, r=25, t=90, b=105),
+        )
+
+        fig_scores.update_xaxes(
+            tickangle=-30,
         )
 
         st.plotly_chart(
@@ -336,9 +952,7 @@ elif page == "Recommendation Analytics":
 
     st.divider()
 
-    # ----------------------------------------------
     # PRODUCT CATEGORY DISTRIBUTION
-    # ----------------------------------------------
 
     st.subheader("Financial Product Category Distribution")
 
@@ -360,16 +974,42 @@ elif page == "Recommendation Analytics":
             category_data,
             names="Category",
             values="Products",
-            hole=0.45,
+            hole=0.58,
             title="Available Products by Category",
+            color_discrete_sequence=CHART_COLORS,
         )
 
-        fig_category.update_layout(height=450)
+        fig_category.update_traces(
+            textinfo="label+percent",
+            hole=0.58,
+            pull=[0.035] * len(category_data),
+            sort=False,
+        )
+
+        style_chart(
+            fig_category,
+            height=470,
+        )
+
+        fig_category.update_layout(
+            showlegend=True,
+            legend=dict(
+                orientation="v",
+                x=1.02,
+                y=0.5,
+            ),
+            margin=dict(l=25, r=120, t=80, b=25),
+        )
 
         st.plotly_chart(
             fig_category,
             use_container_width=True,
         )
+
+
+# --------------------------------------------------
+# 10. PERSONALIZED EXPLORER
+# --------------------------------------------------
 
 elif page == "Personalized Explorer":
 
@@ -379,10 +1019,6 @@ elif page == "Personalized Explorer":
         "Generate customer-specific financial product recommendations "
         "using popularity, content-based and collaborative filtering."
     )
-
-    # ----------------------------------------------
-    # CHECK REQUIRED DATA
-    # ----------------------------------------------
 
     if customers.empty or products.empty or interactions.empty:
 
@@ -400,10 +1036,6 @@ elif page == "Personalized Explorer":
             )
 
         else:
-
-            # --------------------------------------
-            # CUSTOMER SELECTION
-            # --------------------------------------
 
             st.markdown("### 1. Select Customer")
 
@@ -458,9 +1090,7 @@ elif page == "Personalized Explorer":
 
             st.divider()
 
-            # --------------------------------------
             # RECOMMENDATION SETTINGS
-            # --------------------------------------
 
             st.markdown("### 2. Recommendation Settings")
 
@@ -477,9 +1107,7 @@ elif page == "Personalized Explorer":
                 use_container_width=True,
             )
 
-            # --------------------------------------
             # GENERATE RECOMMENDATIONS
-            # --------------------------------------
 
             if (
                 generate_button
@@ -517,6 +1145,7 @@ elif page == "Personalized Explorer":
                         st.session_state["explorer_recommendations_user_id"] = (
                             selected_user_id
                         )
+
                     else:
 
                         recommendations = st.session_state[
@@ -560,9 +1189,7 @@ elif page == "Personalized Explorer":
                             "They are not probabilities of purchase."
                         )
 
-                        # ----------------------------------
                         # RECOMMENDATION TABLE
-                        # ----------------------------------
 
                         display_columns = [
                             "item_id",
@@ -600,9 +1227,7 @@ elif page == "Personalized Explorer":
                             hide_index=True,
                         )
 
-                        # ----------------------------------
                         # RECOMMENDATION SCORE CHART
-                        # ----------------------------------
 
                         st.markdown("### 4. Recommendation Score Analysis")
 
@@ -624,20 +1249,44 @@ elif page == "Personalized Explorer":
                                 "hybrid_score": "Hybrid Score",
                                 "product_name": "Financial Product",
                             },
+                            color="hybrid_score",
+                            color_continuous_scale=[
+                                "#BFDBFE",
+                                "#60A5FA",
+                                "#2563EB",
+                                "#102A56",
+                            ],
                         )
 
                         fig.update_traces(
                             texttemplate="%{text:.3f}",
                             textposition="outside",
+                            marker_line_width=0,
+                            hovertemplate=(
+                                "<b>%{y}</b><br>"
+                                "Hybrid Score: %{x:.4f}"
+                                "<extra></extra>"
+                            ),
+                        )
+
+                        style_chart(
+                            fig,
+                            height=max(370, total_recommendations * 58),
+                            show_legend=False,
                         )
 
                         fig.update_layout(
-                            height=max(350, total_recommendations * 55),
-                            showlegend=False,
                             xaxis_range=[
                                 0,
-                                max(1.1, float(chart_data["hybrid_score"].max()) * 1.15),
+                                max(
+                                    1.1,
+                                    float(chart_data["hybrid_score"].max()) * 1.15,
+                                ),
                             ],
+                            xaxis_title="Hybrid Recommendation Score",
+                            yaxis_title="",
+                            margin=dict(l=25, r=65, t=80, b=45),
+                            coloraxis_showscale=False,
                         )
 
                         st.plotly_chart(
@@ -651,12 +1300,9 @@ elif page == "Personalized Explorer":
                             "or age eligibility checks."
                         )
 
-
                         st.divider()
 
-                        # ----------------------------------
                         # RECOMMENDATION EXPLAINABILITY
-                        # ----------------------------------
 
                         st.markdown("### 5. Why Was This Product Recommended?")
 
@@ -731,9 +1377,7 @@ elif page == "Personalized Explorer":
                             f"{final_score:.4f}",
                         )
 
-                        # ----------------------------------
                         # COMPONENT BREAKDOWN TABLE
-                        # ----------------------------------
 
                         st.markdown("#### Score Contribution Breakdown")
 
@@ -754,9 +1398,7 @@ elif page == "Personalized Explorer":
                             hide_index=True,
                         )
 
-                        # ----------------------------------
                         # CONTRIBUTION CHART
-                        # ----------------------------------
 
                         fig_contribution = px.bar(
                             breakdown,
@@ -764,15 +1406,28 @@ elif page == "Personalized Explorer":
                             y="Weighted Contribution",
                             text="Weighted Contribution",
                             title="Contribution to Final Hybrid Score",
+                            color="Component",
+                            color_discrete_sequence=CHART_COLORS,
                         )
 
                         fig_contribution.update_traces(
                             texttemplate="%{text:.4f}",
                             textposition="outside",
+                            marker_line_width=0,
+                            hovertemplate=(
+                                "<b>%{x}</b><br>"
+                                "Weighted Contribution: %{y:.4f}"
+                                "<extra></extra>"
+                            ),
+                        )
+
+                        style_chart(
+                            fig_contribution,
+                            height=430,
+                            show_legend=False,
                         )
 
                         fig_contribution.update_layout(
-                            height=400,
                             yaxis_range=[
                                 0,
                                 max(
@@ -784,6 +1439,9 @@ elif page == "Personalized Explorer":
                                     ) * 1.25,
                                 ),
                             ],
+                            xaxis_title="",
+                            yaxis_title="Weighted Contribution",
+                            margin=dict(l=25, r=40, t=80, b=65),
                         )
 
                         st.plotly_chart(
@@ -797,12 +1455,9 @@ elif page == "Personalized Explorer":
                             "these contributions equals the hybrid score."
                         )
 
-
                         st.divider()
 
-                        # ----------------------------------
                         # CUSTOMER FEEDBACK
-                        # ----------------------------------
 
                         st.markdown("### 6. Customer Feedback")
 
@@ -852,20 +1507,18 @@ elif page == "Personalized Explorer":
                                 )
 
 
-
-
+# --------------------------------------------------
+# 11. CUSTOMER INSIGHTS
+# --------------------------------------------------
 
 elif page == "Customer Insights":
 
     st.subheader("Customer Insights")
+
     st.caption(
         "Understand customer segments, demographics, consent "
         "and financial product interaction behavior."
     )
-
-    # ----------------------------------------------
-    # CUSTOMER KPIs
-    # ----------------------------------------------
 
     total_customers = len(customers)
     consented = int(customers["consent"].sum())
@@ -884,9 +1537,7 @@ elif page == "Customer Insights":
 
     st.divider()
 
-    # ----------------------------------------------
     # CUSTOMER SEGMENTS
-    # ----------------------------------------------
 
     st.subheader("Customer Segment Distribution")
 
@@ -905,12 +1556,25 @@ elif page == "Customer Insights":
         color="Customer Segment",
         text="Customers",
         title="Customer Distribution by Segment",
+        color_discrete_sequence=CHART_COLORS,
+    )
+
+    fig_segments.update_traces(
+        texttemplate="%{text:,}",
+        textposition="outside",
+        marker_line_width=0,
+    )
+
+    style_chart(
+        fig_segments,
+        height=450,
+        show_legend=False,
     )
 
     fig_segments.update_layout(
-        height=420,
-        showlegend=False,
         xaxis_title="",
+        yaxis_title="Number of Customers",
+        margin=dict(l=25, r=35, t=80, b=55),
     )
 
     st.plotly_chart(
@@ -920,9 +1584,7 @@ elif page == "Customer Insights":
 
     st.divider()
 
-    # ----------------------------------------------
     # AGE DISTRIBUTION
-    # ----------------------------------------------
 
     st.subheader("Customer Age Distribution")
 
@@ -945,12 +1607,25 @@ elif page == "Customer Insights":
         color="Age Group",
         text="Customers",
         title="Customer Distribution by Age Group",
+        color_discrete_sequence=CHART_COLORS,
+    )
+
+    fig_age.update_traces(
+        texttemplate="%{text:,}",
+        textposition="outside",
+        marker_line_width=0,
+    )
+
+    style_chart(
+        fig_age,
+        height=430,
+        show_legend=False,
     )
 
     fig_age.update_layout(
-        height=400,
-        showlegend=False,
-        xaxis_title="",
+        xaxis_title="Age Group",
+        yaxis_title="Number of Customers",
+        margin=dict(l=25, r=35, t=80, b=45),
     )
 
     st.plotly_chart(
@@ -960,9 +1635,7 @@ elif page == "Customer Insights":
 
     st.divider()
 
-    # ----------------------------------------------
     # CONSENT ANALYSIS
-    # ----------------------------------------------
 
     st.subheader("Customer Consent Analysis")
 
@@ -975,11 +1648,34 @@ elif page == "Customer Insights":
         consent_data,
         names="Consent Status",
         values="Customers",
-        hole=0.5,
+        hole=0.58,
         title="Customer Consent Distribution",
+        color="Consent Status",
+        color_discrete_map={
+            "Consented": "#0D9488",
+            "Not Consented": "#F59E0B",
+        },
     )
 
-    fig_consent.update_layout(height=420)
+    fig_consent.update_traces(
+        pull=[0.035, 0.035],
+        sort=False,
+    )
+
+    style_chart(
+        fig_consent,
+        height=450,
+    )
+
+    fig_consent.update_layout(
+        legend=dict(
+            orientation="h",
+            y=-0.08,
+            x=0.5,
+            xanchor="center",
+        ),
+        margin=dict(l=25, r=25, t=80, b=55),
+    )
 
     st.plotly_chart(
         fig_consent,
@@ -993,9 +1689,7 @@ elif page == "Customer Insights":
 
     st.divider()
 
-    # ----------------------------------------------
     # INTERACTION BEHAVIOR
-    # ----------------------------------------------
 
     st.subheader("Customer Interaction Behavior")
 
@@ -1018,12 +1712,25 @@ elif page == "Customer Insights":
         color="Event Type",
         text="Interactions",
         title="Customer Engagement by Event Type",
+        color_discrete_sequence=CHART_COLORS,
+    )
+
+    fig_events.update_traces(
+        texttemplate="%{text:,}",
+        textposition="outside",
+        marker_line_width=0,
+    )
+
+    style_chart(
+        fig_events,
+        height=440,
+        show_legend=False,
     )
 
     fig_events.update_layout(
-        height=420,
-        showlegend=False,
-        xaxis_title="",
+        xaxis_title="Interaction Type",
+        yaxis_title="Total Interactions",
+        margin=dict(l=25, r=35, t=80, b=45),
     )
 
     st.plotly_chart(
@@ -1033,9 +1740,7 @@ elif page == "Customer Insights":
 
     st.divider()
 
-    # ----------------------------------------------
     # CUSTOMER ACTIVITY OVER TIME
-    # ----------------------------------------------
 
     st.subheader("Customer Activity Trend")
 
@@ -1063,9 +1768,44 @@ elif page == "Customer Insights":
             "timestamp": "Date",
             "Interactions": "Total Interactions",
         },
+        color_discrete_sequence=["#2563EB"],
     )
 
-    fig_activity.update_layout(height=420)
+    fig_activity.update_traces(
+        fill="tozeroy",
+        fillcolor="rgba(37,99,235,0.09)",
+        line=dict(
+            color="#2563EB",
+            width=3,
+            shape="spline",
+        ),
+        marker=dict(
+            size=7,
+            color="#0D9488",
+            line=dict(
+                color="#FFFFFF",
+                width=2,
+            ),
+        ),
+        hovertemplate=(
+            "<b>%{x|%d %b %Y}</b><br>"
+            "Interactions: %{y:,}"
+            "<extra></extra>"
+        ),
+    )
+
+    style_chart(
+        fig_activity,
+        height=450,
+        show_legend=False,
+    )
+
+    fig_activity.update_layout(
+        xaxis_title="Date",
+        yaxis_title="Daily Interactions",
+        hovermode="x unified",
+        margin=dict(l=25, r=35, t=80, b=45),
+    )
 
     st.plotly_chart(
         fig_activity,
@@ -1073,17 +1813,18 @@ elif page == "Customer Insights":
     )
 
 
+# --------------------------------------------------
+# 12. PRODUCT ANALYTICS
+# --------------------------------------------------
+
 elif page == "Product Analytics":
 
     st.subheader("Product Analytics")
+
     st.caption(
         "Analyze financial product availability, category mix, "
         "popularity and customer engagement."
     )
-
-    # ----------------------------------------------
-    # PRODUCT KPIs
-    # ----------------------------------------------
 
     total_products = len(products)
     available_count = int(products["available"].sum())
@@ -1099,9 +1840,7 @@ elif page == "Product Analytics":
 
     st.divider()
 
-    # ----------------------------------------------
     # CATEGORY FILTER
-    # ----------------------------------------------
 
     st.subheader("Product Catalog Explorer")
 
@@ -1141,9 +1880,7 @@ elif page == "Product Analytics":
 
     st.divider()
 
-    # ----------------------------------------------
     # CATEGORY DISTRIBUTION
-    # ----------------------------------------------
 
     st.subheader("Product Category Distribution")
 
@@ -1162,12 +1899,25 @@ elif page == "Product Analytics":
         color="Category",
         text="Products",
         title="Financial Products by Category",
+        color_discrete_sequence=CHART_COLORS,
+    )
+
+    fig_categories.update_traces(
+        texttemplate="%{text:,}",
+        textposition="outside",
+        marker_line_width=0,
+    )
+
+    style_chart(
+        fig_categories,
+        height=450,
+        show_legend=False,
     )
 
     fig_categories.update_layout(
-        height=420,
-        showlegend=False,
-        xaxis_title="",
+        xaxis_title="Product Category",
+        yaxis_title="Number of Products",
+        margin=dict(l=25, r=35, t=80, b=55),
     )
 
     st.plotly_chart(
@@ -1177,9 +1927,7 @@ elif page == "Product Analytics":
 
     st.divider()
 
-    # ----------------------------------------------
     # PRODUCT AVAILABILITY
-    # ----------------------------------------------
 
     st.subheader("Product Availability Analysis")
 
@@ -1192,11 +1940,34 @@ elif page == "Product Analytics":
         availability_data,
         names="Availability",
         values="Products",
-        hole=0.5,
+        hole=0.58,
         title="Product Availability Distribution",
+        color="Availability",
+        color_discrete_map={
+            "Available": "#0D9488",
+            "Unavailable": "#F59E0B",
+        },
     )
 
-    fig_availability.update_layout(height=420)
+    fig_availability.update_traces(
+        pull=[0.035, 0.035],
+        sort=False,
+    )
+
+    style_chart(
+        fig_availability,
+        height=450,
+    )
+
+    fig_availability.update_layout(
+        legend=dict(
+            orientation="h",
+            y=-0.08,
+            x=0.5,
+            xanchor="center",
+        ),
+        margin=dict(l=25, r=25, t=80, b=55),
+    )
 
     st.plotly_chart(
         fig_availability,
@@ -1205,9 +1976,7 @@ elif page == "Product Analytics":
 
     st.divider()
 
-    # ----------------------------------------------
     # TOP POPULAR PRODUCTS
-    # ----------------------------------------------
 
     st.subheader("Top 10 Popular Financial Products")
 
@@ -1241,12 +2010,25 @@ elif page == "Product Analytics":
                     "product_name": "Financial Product",
                     "category": "Category",
                 },
+                color_discrete_sequence=CHART_COLORS,
+            )
+
+            fig_popular.update_traces(
+                texttemplate="%{text:,}",
+                textposition="outside",
+                marker_line_width=0,
+            )
+
+            style_chart(
+                fig_popular,
+                height=490,
             )
 
             fig_popular.update_layout(
-                height=480,
+                xaxis_title="Total Interactions",
                 yaxis_title="",
                 legend_title="Category",
+                margin=dict(l=25, r=60, t=80, b=45),
             )
 
             st.plotly_chart(
@@ -1259,9 +2041,7 @@ elif page == "Product Analytics":
 
     st.divider()
 
-    # ----------------------------------------------
     # PRODUCT ENGAGEMENT TABLE
-    # ----------------------------------------------
 
     st.subheader("Product Engagement Performance")
 
@@ -1302,17 +2082,18 @@ elif page == "Product Analytics":
         )
 
 
+# --------------------------------------------------
+# 13. API MONITORING
+# --------------------------------------------------
+
 elif page == "API Monitoring":
 
     st.subheader("API Performance Monitoring")
+
     st.caption(
         "Monitor recommendation API latency, reliability, "
         "HTTP responses and recommendation caching."
     )
-
-    # ----------------------------------------------
-    # CHECK MONITORING DATA
-    # ----------------------------------------------
 
     if api_metrics.empty:
 
@@ -1351,9 +2132,7 @@ elif page == "API Monitoring":
             subset=["timestamp", "response_time_ms", "status_code"]
         )
 
-        # ------------------------------------------
         # API PERFORMANCE KPIs
-        # ------------------------------------------
 
         total_requests = len(monitoring)
 
@@ -1391,9 +2170,7 @@ elif page == "API Monitoring":
             if cache_requests else 0
         )
 
-        # ------------------------------------------
         # KPI CARDS
-        # ------------------------------------------
 
         st.subheader("API Performance Overview")
 
@@ -1433,9 +2210,7 @@ elif page == "API Monitoring":
 
         st.divider()
 
-        # ------------------------------------------
         # RESPONSE TIME TREND
-        # ------------------------------------------
 
         st.subheader("API Response Time Trend")
 
@@ -1451,9 +2226,41 @@ elif page == "API Monitoring":
                 "timestamp": "Request Time (UTC)",
                 "response_time_ms": "Response Time (ms)",
             },
+            color_discrete_sequence=["#2563EB"],
         )
 
-        fig_response.update_layout(height=420)
+        fig_response.update_traces(
+            line=dict(
+                width=3,
+                color="#2563EB",
+            ),
+            marker=dict(
+                size=7,
+                color="#0D9488",
+                line=dict(
+                    width=2,
+                    color="#FFFFFF",
+                ),
+            ),
+            hovertemplate=(
+                "<b>%{x|%d %b %Y %H:%M:%S}</b><br>"
+                "Response Time: %{y:.2f} ms"
+                "<extra></extra>"
+            ),
+        )
+
+        style_chart(
+            fig_response,
+            height=460,
+            show_legend=False,
+        )
+
+        fig_response.update_layout(
+            xaxis_title="Request Time (UTC)",
+            yaxis_title="Response Time (ms)",
+            hovermode="x unified",
+            margin=dict(l=25, r=35, t=80, b=45),
+        )
 
         st.plotly_chart(
             fig_response,
@@ -1462,9 +2269,7 @@ elif page == "API Monitoring":
 
         st.divider()
 
-        # ------------------------------------------
         # HTTP STATUS DISTRIBUTION
-        # ------------------------------------------
 
         st.subheader("HTTP Status Code Distribution")
 
@@ -1485,11 +2290,25 @@ elif page == "API Monitoring":
             color="Status Code",
             text="Requests",
             title="API Requests by HTTP Status Code",
+            color_discrete_sequence=CHART_COLORS,
+        )
+
+        fig_status.update_traces(
+            texttemplate="%{text:,}",
+            textposition="outside",
+            marker_line_width=0,
+        )
+
+        style_chart(
+            fig_status,
+            height=430,
+            show_legend=False,
         )
 
         fig_status.update_layout(
-            height=400,
-            showlegend=False,
+            xaxis_title="HTTP Status Code",
+            yaxis_title="Number of Requests",
+            margin=dict(l=25, r=35, t=80, b=45),
         )
 
         st.plotly_chart(
@@ -1499,9 +2318,7 @@ elif page == "API Monitoring":
 
         st.divider()
 
-        # ------------------------------------------
         # CACHE PERFORMANCE
-        # ------------------------------------------
 
         st.subheader("Recommendation Cache Performance")
 
@@ -1516,11 +2333,34 @@ elif page == "API Monitoring":
             cache_data,
             names="Cache Status",
             values="Requests",
-            hole=0.5,
+            hole=0.58,
             title="Cache Hit vs Cache Miss",
+            color="Cache Status",
+            color_discrete_map={
+                "Cache Hits": "#0D9488",
+                "Cache Misses": "#F59E0B",
+            },
         )
 
-        fig_cache.update_layout(height=400)
+        fig_cache.update_traces(
+            pull=[0.035, 0.035],
+            sort=False,
+        )
+
+        style_chart(
+            fig_cache,
+            height=430,
+        )
+
+        fig_cache.update_layout(
+            legend=dict(
+                orientation="h",
+                y=-0.08,
+                x=0.5,
+                xanchor="center",
+            ),
+            margin=dict(l=20, r=20, t=80, b=55),
+        )
 
         cache_col1.plotly_chart(
             fig_cache,
@@ -1549,11 +2389,27 @@ elif page == "API Monitoring":
             labels={
                 "response_time_ms": "Average Response Time (ms)",
             },
+            color_discrete_map={
+                "Cache Hit": "#0D9488",
+                "Cache Miss": "#F59E0B",
+            },
+        )
+
+        fig_cache_time.update_traces(
+            textposition="outside",
+            marker_line_width=0,
+        )
+
+        style_chart(
+            fig_cache_time,
+            height=430,
+            show_legend=False,
         )
 
         fig_cache_time.update_layout(
-            height=400,
-            showlegend=False,
+            xaxis_title="Cache Status",
+            yaxis_title="Average Response Time (ms)",
+            margin=dict(l=25, r=35, t=80, b=45),
         )
 
         cache_col2.plotly_chart(
@@ -1568,9 +2424,7 @@ elif page == "API Monitoring":
 
         st.divider()
 
-        # ------------------------------------------
         # RECENT API REQUESTS
-        # ------------------------------------------
 
         st.subheader("Recent API Request Logs")
 
@@ -1604,9 +2458,14 @@ elif page == "API Monitoring":
         )
 
 
+# --------------------------------------------------
+# 14. FEEDBACK ANALYTICS
+# --------------------------------------------------
+
 elif page == "Feedback Analytics":
 
     st.title("Customer Feedback Analytics")
+
     st.caption(
         "Understand how customers respond to personalized financial recommendations."
     )
@@ -1616,12 +2475,14 @@ elif page == "Feedback Analytics":
     total = feedback_metrics["total_feedback"]
 
     if total == 0:
+
         st.info(
             "No customer feedback available yet. "
             "Generate recommendations and submit feedback in Personalized Explorer."
         )
 
     else:
+
         col1, col2, col3, col4 = st.columns(4)
 
         col1.metric(
@@ -1646,6 +2507,8 @@ elif page == "Feedback Analytics":
 
         st.divider()
 
+        # CUSTOMER FEEDBACK DISTRIBUTION
+
         st.subheader("Customer Feedback Distribution")
 
         feedback_distribution = pd.DataFrame({
@@ -1665,13 +2528,44 @@ elif page == "Feedback Analytics":
             feedback_distribution,
             names="Feedback",
             values="Count",
-            hole=0.45,
+            hole=0.58,
             title="Feedback Breakdown",
+            color="Feedback",
+            color_discrete_map={
+                "Helpful": "#0D9488",
+                "Not Helpful": "#EF4444",
+                "Already Own This Product": "#F59E0B",
+            },
         )
 
-        st.plotly_chart(fig, use_container_width=True)
+        fig.update_traces(
+            pull=[0.035, 0.035, 0.035],
+            sort=False,
+        )
+
+        style_chart(
+            fig,
+            height=470,
+        )
+
+        fig.update_layout(
+            legend=dict(
+                orientation="h",
+                y=-0.08,
+                x=0.5,
+                xanchor="center",
+            ),
+            margin=dict(l=25, r=25, t=80, b=60),
+        )
+
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+        )
 
         st.divider()
+
+        # PRODUCT-LEVEL FEEDBACK
 
         st.subheader("Product-Level Feedback")
 
@@ -1690,6 +2584,7 @@ elif page == "Feedback Analytics":
             ]
 
             if feedback_columns:
+
                 product_chart_data = product_feedback.melt(
                     id_vars=["item_id", "product_name"],
                     value_vars=feedback_columns,
@@ -1708,6 +2603,37 @@ elif page == "Feedback Analytics":
                     color="Feedback",
                     barmode="group",
                     title="Customer Feedback by Product",
+                    color_discrete_map={
+                        "Helpful": "#0D9488",
+                        "Not Helpful": "#EF4444",
+                        "Already Own This Product": "#F59E0B",
+                    },
+                )
+
+                fig.update_traces(
+                    marker_line_width=0,
+                    hovertemplate=(
+                        "<b>%{x}</b><br>"
+                        "Feedback: %{fullData.name}<br>"
+                        "Count: %{y:,}"
+                        "<extra></extra>"
+                    ),
+                )
+
+                style_chart(
+                    fig,
+                    height=480,
+                )
+
+                fig.update_layout(
+                    xaxis_title="Financial Product",
+                    yaxis_title="Feedback Count",
+                    legend_title="Customer Feedback",
+                    margin=dict(l=25, r=25, t=85, b=100),
+                )
+
+                fig.update_xaxes(
+                    tickangle=-30,
                 )
 
                 st.plotly_chart(
@@ -1722,8 +2648,22 @@ elif page == "Feedback Analytics":
             )
 
 
-else:
-    st.subheader(page)
-    st.info("This analytics section will be implemented in the next steps.")
+# --------------------------------------------------
+# 15. APPLICATION FOOTER
+# --------------------------------------------------
 
-
+st.markdown(
+    """
+    <div class="app-footer">
+        <strong>FinReco</strong> &nbsp;|&nbsp;
+        Personalized Financial Recommendation Intelligence
+        <br>
+        Built with Python, Machine Learning, FastAPI and Streamlit
+        <br>
+        <span style="font-size:0.7rem;">
+            Portfolio Engineering Project &nbsp;·&nbsp; Version 1.0
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
