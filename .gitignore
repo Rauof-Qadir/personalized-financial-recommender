@@ -18,3 +18,6 @@ models/*
 # Application logs
 logs/
 *.log
+
+# Runtime monitoring data
+reports/api_monitoring.csv
