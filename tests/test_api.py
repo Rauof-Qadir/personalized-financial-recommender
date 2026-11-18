@@ -5,6 +5,8 @@ from src.utils.recommendation_cache import (
 )
 from src.api.main import app
 from src.api.main import app, artifacts
+from fastapi.testclient import TestClient
+from src.api.main import app
 
 client = TestClient(app)
 
@@ -107,3 +109,28 @@ def test_recommendation_cache_hit_and_miss():
 
     clear_recommendation_cache()
 
+
+def test_api_rate_limit():
+    rate_limit_client = TestClient(
+        app,
+        client=("127.0.0.2", 50000),
+    )
+
+    payload = {
+        "user_id": "U00003",
+        "limit": 5,
+    }
+
+    for _ in range(10):
+        response = rate_limit_client.post(
+            "/recommend",
+            json=payload,
+        )
+        assert response.status_code == 200
+
+    response = rate_limit_client.post(
+        "/recommend",
+        json=payload,
+    )
+
+    assert response.status_code == 429

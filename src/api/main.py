@@ -1,9 +1,14 @@
 
 from pathlib import Path
 import joblib
+from fastapi import FastAPI, HTTPException, Request
 import pandas as pd
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from src.utils.logger import get_logger
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
 
 from src.api.schemas import RecommendationRequest
 from src.recommenders.hybrid import recommend_hybrid
@@ -25,6 +30,16 @@ app = FastAPI(
     description="Hybrid recommendation engine for financial products.",
     version="1.0.0",
 )
+
+limiter = Limiter(key_func=get_remote_address)
+
+app.state.limiter = limiter
+app.add_exception_handler(
+    RateLimitExceeded,
+    _rate_limit_exceeded_handler,
+)
+
+app.add_middleware(SlowAPIMiddleware)
 
 logger = get_logger("recommendation_api")
 
@@ -50,30 +65,34 @@ def home():
     }
 
 
+
 @app.post("/recommend")
-def get_recommendations(request: RecommendationRequest):
+@limiter.limit("10/minute")
+def get_recommendations(
+    request: Request,
+    recommendation_request: RecommendationRequest,
+):
 
     logger.info(
         "Recommendation request received | user_id=%s | limit=%s",
-        request.user_id,
-        request.limit,
+        recommendation_request.user_id,
+        recommendation_request.limit,
     )
 
     try:
-        # Check cache first.
         cached_results = get_cached_recommendations(
-            request.user_id,
-            request.limit,
+            recommendation_request.user_id,
+            recommendation_request.limit,
         )
 
         if cached_results is not None:
             logger.info(
                 "Cache hit | user_id=%s",
-                request.user_id,
+                recommendation_request.user_id,
             )
 
             return {
-                "user_id": request.user_id,
+                "user_id": recommendation_request.user_id,
                 "total_recommendations": len(cached_results),
                 "recommendations": cached_results,
                 "cache_hit": True,
@@ -81,34 +100,34 @@ def get_recommendations(request: RecommendationRequest):
 
         logger.info(
             "Cache miss | generating recommendations | user_id=%s",
-            request.user_id,
+            recommendation_request.user_id,
         )
 
         recommendations = recommend_hybrid(
-            user_id=request.user_id,
+            user_id=recommendation_request.user_id,
             customers=customers,
             products=products,
             interactions=interactions,
-            k=request.limit,
+            k=recommendation_request.limit,
             artifacts=artifacts,
         )
 
         results = recommendations.to_dict(orient="records")
 
         cache_recommendations(
-            request.user_id,
-            request.limit,
+            recommendation_request.user_id,
+            recommendation_request.limit,
             results,
         )
 
         logger.info(
             "Recommendations generated | user_id=%s | count=%s",
-            request.user_id,
+            recommendation_request.user_id,
             len(results),
         )
 
         return {
-            "user_id": request.user_id,
+            "user_id": recommendation_request.user_id,
             "total_recommendations": len(results),
             "recommendations": results,
             "cache_hit": False,
@@ -117,7 +136,7 @@ def get_recommendations(request: RecommendationRequest):
     except Exception:
         logger.exception(
             "Recommendation generation failed | user_id=%s",
-            request.user_id,
+            recommendation_request.user_id,
         )
 
         raise HTTPException(
