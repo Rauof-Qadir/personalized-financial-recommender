@@ -1,11 +1,16 @@
-
+from src.recommenders.hybrid import (
+    recommend_hybrid,
+    DEFAULT_WEIGHTS,
+)
+from src.evaluation.feedback_analysis import analyze_feedback
+from src.utils.feedback import save_recommendation_feedback
 from pathlib import Path
 import json
 import joblib
 import plotly.express as px
 import pandas as pd
 import streamlit as st
-from src.recommenders.hybrid import recommend_hybrid
+
 
 
 # --------------------------------------------------
@@ -476,7 +481,12 @@ elif page == "Personalized Explorer":
             # GENERATE RECOMMENDATIONS
             # --------------------------------------
 
-            if generate_button:
+            if (
+                generate_button
+                or st.session_state.get(
+                    "explorer_recommendations_user_id"
+                ) == selected_user_id
+            ):
 
                 if not consent_granted:
 
@@ -487,18 +497,31 @@ elif page == "Personalized Explorer":
 
                 else:
 
-                    with st.spinner(
-                        "Analyzing customer preferences and generating recommendations..."
-                    ):
+                    if generate_button:
+                        with st.spinner(
+                            "Analyzing customer preferences and generating recommendations..."
+                        ):
+                            recommendations = recommend_hybrid(
+                                user_id=selected_user_id,
+                                customers=customers,
+                                products=products,
+                                interactions=interactions,
+                                k=recommendation_limit,
+                                artifacts=artifacts,
+                            )
 
-                        recommendations = recommend_hybrid(
-                            user_id=selected_user_id,
-                            customers=customers,
-                            products=products,
-                            interactions=interactions,
-                            k=recommendation_limit,
-                            artifacts=artifacts,
+                        st.session_state["explorer_recommendations"] = (
+                            recommendations
                         )
+
+                        st.session_state["explorer_recommendations_user_id"] = (
+                            selected_user_id
+                        )
+                    else:
+
+                        recommendations = st.session_state[
+                            "explorer_recommendations"
+                        ]
 
                     st.divider()
 
@@ -627,6 +650,209 @@ elif page == "Personalized Explorer":
                             "products and products that fail availability "
                             "or age eligibility checks."
                         )
+
+
+                        st.divider()
+
+                        # ----------------------------------
+                        # RECOMMENDATION EXPLAINABILITY
+                        # ----------------------------------
+
+                        st.markdown("### 5. Why Was This Product Recommended?")
+
+                        product_ids = recommendations["item_id"].tolist()
+
+                        product_names = recommendations.set_index(
+                            "item_id"
+                        )["product_name"].to_dict()
+
+                        selected_product_id = st.selectbox(
+                            "Select a recommended product",
+                            product_ids,
+                            format_func=lambda item_id: (
+                                f"{item_id} - {product_names[item_id]}"
+                            ),
+                        )
+
+                        selected_product = recommendations.loc[
+                            recommendations["item_id"] == selected_product_id
+                        ].iloc[0]
+
+                        component_details = [
+                            {
+                                "Component": "Popularity",
+                                "Score Column": "popularity_score",
+                                "Weight": DEFAULT_WEIGHTS["popularity_score"],
+                            },
+                            {
+                                "Component": "Interest Similarity",
+                                "Score Column": "similarity_score",
+                                "Weight": DEFAULT_WEIGHTS["similarity_score"],
+                            },
+                            {
+                                "Component": "Collaborative Filtering",
+                                "Score Column": "collaborative_score",
+                                "Weight": DEFAULT_WEIGHTS["collaborative_score"],
+                            },
+                        ]
+
+                        breakdown_rows = []
+
+                        for component in component_details:
+
+                            component_score = float(
+                                selected_product[component["Score Column"]]
+                            )
+
+                            weight = component["Weight"]
+
+                            contribution = component_score * weight
+
+                            breakdown_rows.append({
+                                "Component": component["Component"],
+                                "Normalized Score": component_score,
+                                "Model Weight": weight,
+                                "Weighted Contribution": contribution,
+                            })
+
+                        breakdown = pd.DataFrame(breakdown_rows)
+
+                        final_score = float(
+                            selected_product["hybrid_score"]
+                        )
+
+                        st.markdown(
+                            f"**Selected Product:** "
+                            f"{selected_product['product_name']}"
+                        )
+
+                        st.metric(
+                            "Final Hybrid Score",
+                            f"{final_score:.4f}",
+                        )
+
+                        # ----------------------------------
+                        # COMPONENT BREAKDOWN TABLE
+                        # ----------------------------------
+
+                        st.markdown("#### Score Contribution Breakdown")
+
+                        display_breakdown = breakdown.copy()
+
+                        for column in [
+                            "Normalized Score",
+                            "Model Weight",
+                            "Weighted Contribution",
+                        ]:
+                            display_breakdown[column] = (
+                                display_breakdown[column].round(4)
+                            )
+
+                        st.dataframe(
+                            display_breakdown,
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+
+                        # ----------------------------------
+                        # CONTRIBUTION CHART
+                        # ----------------------------------
+
+                        fig_contribution = px.bar(
+                            breakdown,
+                            x="Component",
+                            y="Weighted Contribution",
+                            text="Weighted Contribution",
+                            title="Contribution to Final Hybrid Score",
+                        )
+
+                        fig_contribution.update_traces(
+                            texttemplate="%{text:.4f}",
+                            textposition="outside",
+                        )
+
+                        fig_contribution.update_layout(
+                            height=400,
+                            yaxis_range=[
+                                0,
+                                max(
+                                    0.45,
+                                    float(
+                                        breakdown[
+                                            "Weighted Contribution"
+                                        ].max()
+                                    ) * 1.25,
+                                ),
+                            ],
+                        )
+
+                        st.plotly_chart(
+                            fig_contribution,
+                            use_container_width=True,
+                        )
+
+                        st.caption(
+                            "Weighted contribution = normalized component "
+                            "score × configured model weight. The sum of "
+                            "these contributions equals the hybrid score."
+                        )
+
+
+                        st.divider()
+
+                        # ----------------------------------
+                        # CUSTOMER FEEDBACK
+                        # ----------------------------------
+
+                        st.markdown("### 6. Customer Feedback")
+
+                        st.write(
+                            "Help us understand whether this "
+                            "recommendation is useful."
+                        )
+
+                        with st.form(
+                            key="recommendation_feedback_form"
+                        ):
+
+                            feedback_choice = st.selectbox(
+                                "Your feedback",
+                                [
+                                    "Select feedback",
+                                    "Helpful",
+                                    "Not Helpful",
+                                    "Already Own This Product",
+                                ],
+                                key="recommendation_feedback_choice",
+                            )
+
+                            feedback_submit = st.form_submit_button(
+                                "Submit Feedback"
+                            )
+
+                        if feedback_submit:
+
+                            if feedback_choice == "Select feedback":
+
+                                st.warning(
+                                    "Please select your feedback first."
+                                )
+
+                            else:
+
+                                save_recommendation_feedback(
+                                    user_id=selected_user_id,
+                                    item_id=selected_product_id,
+                                    product_name=selected_product["product_name"],
+                                    feedback=feedback_choice,
+                                )
+
+                                st.success(
+                                    "Thank you! Your feedback has been saved."
+                                )
+
+
+
 
 
 elif page == "Customer Insights":
@@ -1376,6 +1602,124 @@ elif page == "API Monitoring":
             "These monitoring records include requests generated "
             "during API testing as well as manual API usage."
         )
+
+
+elif page == "Feedback Analytics":
+
+    st.title("Customer Feedback Analytics")
+    st.caption(
+        "Understand how customers respond to personalized financial recommendations."
+    )
+
+    feedback_metrics = analyze_feedback()
+
+    total = feedback_metrics["total_feedback"]
+
+    if total == 0:
+        st.info(
+            "No customer feedback available yet. "
+            "Generate recommendations and submit feedback in Personalized Explorer."
+        )
+
+    else:
+        col1, col2, col3, col4 = st.columns(4)
+
+        col1.metric(
+            "Total Feedback",
+            f'{feedback_metrics["total_feedback"]:,}',
+        )
+
+        col2.metric(
+            "Helpful Feedback",
+            f'{feedback_metrics["helpful_count"]:,}',
+        )
+
+        col3.metric(
+            "Not Helpful",
+            f'{feedback_metrics["not_helpful_count"]:,}',
+        )
+
+        col4.metric(
+            "Helpful Rate",
+            f'{feedback_metrics["helpful_rate"]:.2f}%',
+        )
+
+        st.divider()
+
+        st.subheader("Customer Feedback Distribution")
+
+        feedback_distribution = pd.DataFrame({
+            "Feedback": [
+                "Helpful",
+                "Not Helpful",
+                "Already Own This Product",
+            ],
+            "Count": [
+                feedback_metrics["helpful_count"],
+                feedback_metrics["not_helpful_count"],
+                feedback_metrics["already_owned_count"],
+            ],
+        })
+
+        fig = px.pie(
+            feedback_distribution,
+            names="Feedback",
+            values="Count",
+            hole=0.45,
+            title="Feedback Breakdown",
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+
+        st.divider()
+
+        st.subheader("Product-Level Feedback")
+
+        product_feedback = feedback_metrics["product_feedback"]
+
+        if not product_feedback.empty:
+
+            feedback_columns = [
+                col
+                for col in [
+                    "Helpful",
+                    "Not Helpful",
+                    "Already Own This Product",
+                ]
+                if col in product_feedback.columns
+            ]
+
+            if feedback_columns:
+                product_chart_data = product_feedback.melt(
+                    id_vars=["item_id", "product_name"],
+                    value_vars=feedback_columns,
+                    var_name="Feedback",
+                    value_name="Count",
+                )
+
+                product_chart_data = product_chart_data[
+                    product_chart_data["Count"] > 0
+                ]
+
+                fig = px.bar(
+                    product_chart_data,
+                    x="product_name",
+                    y="Count",
+                    color="Feedback",
+                    barmode="group",
+                    title="Customer Feedback by Product",
+                )
+
+                st.plotly_chart(
+                    fig,
+                    use_container_width=True,
+                )
+
+            st.dataframe(
+                product_feedback,
+                use_container_width=True,
+                hide_index=True,
+            )
 
 
 else:
