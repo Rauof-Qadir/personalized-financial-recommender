@@ -1,9 +1,11 @@
 
 from pathlib import Path
 import json
+import joblib
 import plotly.express as px
 import pandas as pd
 import streamlit as st
+from src.recommenders.hybrid import recommend_hybrid
 
 
 # --------------------------------------------------
@@ -13,6 +15,9 @@ import streamlit as st
 ROOT_DIR = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT_DIR / "data" / "raw"
 REPORTS_DIR = ROOT_DIR / "reports"
+
+MODELS_DIR = ROOT_DIR / "models"
+ARTIFACT_PATH = MODELS_DIR / "recommender_artifacts.joblib"
 
 
 # --------------------------------------------------
@@ -47,6 +52,12 @@ def load_json(file_path):
     with file_path.open("r", encoding="utf-8") as file:
         return json.load(file)
 
+@st.cache_resource
+def load_recommender_artifacts():
+    if not ARTIFACT_PATH.exists():
+        return None
+
+    return joblib.load(ARTIFACT_PATH)
 
 customers = load_csv(DATA_DIR / "customers.csv")
 products = load_csv(DATA_DIR / "products.csv")
@@ -72,12 +83,13 @@ st.sidebar.caption("Financial Product Intelligence Platform")
 page = st.sidebar.radio(
     "Navigation",
     [
-        "Executive Overview",
-        "Recommendation Analytics",
-        "Customer Insights",
-        "Product Analytics",
-        "API Monitoring",
-    ],
+    "Executive Overview",
+    "Recommendation Analytics",
+    "Personalized Explorer",
+    "Customer Insights",
+    "Product Analytics",
+    "API Monitoring",
+],
 )
 
 st.sidebar.divider()
@@ -353,6 +365,268 @@ elif page == "Recommendation Analytics":
             fig_category,
             use_container_width=True,
         )
+
+elif page == "Personalized Explorer":
+
+    st.subheader("Personalized Financial Product Explorer")
+
+    st.caption(
+        "Generate customer-specific financial product recommendations "
+        "using popularity, content-based and collaborative filtering."
+    )
+
+    # ----------------------------------------------
+    # CHECK REQUIRED DATA
+    # ----------------------------------------------
+
+    if customers.empty or products.empty or interactions.empty:
+
+        st.error("Required customer, product or interaction data is missing.")
+
+    else:
+
+        artifacts = load_recommender_artifacts()
+
+        if artifacts is None:
+
+            st.error(
+                "Recommendation artifacts not found. "
+                "Run: python -m src.recommenders.build_artifacts"
+            )
+
+        else:
+
+            # --------------------------------------
+            # CUSTOMER SELECTION
+            # --------------------------------------
+
+            st.markdown("### 1. Select Customer")
+
+            customer_options = sorted(
+                customers["user_id"].astype(str).unique().tolist()
+            )
+
+            selected_user_id = st.selectbox(
+                "Customer ID",
+                customer_options,
+                index=0,
+                help="Select a customer to generate personalized recommendations."
+            )
+
+            customer_row = customers.loc[
+                customers["user_id"].astype(str) == selected_user_id
+            ].iloc[0]
+
+            consent_granted = (
+                str(customer_row["consent"]).strip().lower()
+                in {"true", "1", "yes"}
+            )
+
+            profile_col1, profile_col2, profile_col3 = st.columns(3)
+
+            profile_col1.metric(
+                "Customer Segment",
+                str(customer_row["customer_segment"]).replace("_", " ").title()
+            )
+
+            profile_col2.metric(
+                "Age Group",
+                str(customer_row["age_group"])
+            )
+
+            profile_col3.metric(
+                "Recommendation Consent",
+                "Granted" if consent_granted else "Not Granted"
+            )
+
+            st.caption(
+                f"Customer interests: {str(customer_row['interests']).replace('|', ', ')}"
+            )
+
+            if consent_granted:
+                st.success("Customer has granted recommendation consent.")
+            else:
+                st.warning(
+                    "This customer has not granted recommendation consent. "
+                    "The recommendation engine will not generate recommendations."
+                )
+
+            st.divider()
+
+            # --------------------------------------
+            # RECOMMENDATION SETTINGS
+            # --------------------------------------
+
+            st.markdown("### 2. Recommendation Settings")
+
+            recommendation_limit = st.slider(
+                "Number of recommendations",
+                min_value=1,
+                max_value=20,
+                value=5,
+            )
+
+            generate_button = st.button(
+                "Generate Personalized Recommendations",
+                type="primary",
+                use_container_width=True,
+            )
+
+            # --------------------------------------
+            # GENERATE RECOMMENDATIONS
+            # --------------------------------------
+
+            if generate_button:
+
+                if not consent_granted:
+
+                    st.error(
+                        "Recommendations cannot be generated because "
+                        "customer consent has not been granted."
+                    )
+
+                else:
+
+                    with st.spinner(
+                        "Analyzing customer preferences and generating recommendations..."
+                    ):
+
+                        recommendations = recommend_hybrid(
+                            user_id=selected_user_id,
+                            customers=customers,
+                            products=products,
+                            interactions=interactions,
+                            k=recommendation_limit,
+                            artifacts=artifacts,
+                        )
+
+                    st.divider()
+
+                    st.markdown("### 3. Personalized Recommendations")
+
+                    if recommendations.empty:
+
+                        st.info(
+                            "No eligible unseen financial products were found "
+                            "for this customer."
+                        )
+
+                    else:
+
+                        total_recommendations = len(recommendations)
+
+                        avg_score = recommendations[
+                            "hybrid_score"
+                        ].mean()
+
+                        result_col1, result_col2 = st.columns(2)
+
+                        result_col1.metric(
+                            "Recommendations Generated",
+                            total_recommendations,
+                        )
+
+                        result_col2.metric(
+                            "Average Hybrid Score",
+                            f"{avg_score:.3f}",
+                        )
+
+                        st.caption(
+                            "Higher hybrid scores indicate stronger ranking "
+                            "under the configured recommendation model. "
+                            "They are not probabilities of purchase."
+                        )
+
+                        # ----------------------------------
+                        # RECOMMENDATION TABLE
+                        # ----------------------------------
+
+                        display_columns = [
+                            "item_id",
+                            "product_name",
+                            "category",
+                            "hybrid_score",
+                            "recommendation_reason",
+                        ]
+
+                        display_data = recommendations[
+                            display_columns
+                        ].copy()
+
+                        display_data["hybrid_score"] = (
+                            display_data["hybrid_score"].round(4)
+                        )
+
+                        display_data["category"] = (
+                            display_data["category"]
+                            .str.replace("_", " ")
+                            .str.title()
+                        )
+
+                        display_data.columns = [
+                            "Product ID",
+                            "Product Name",
+                            "Category",
+                            "Hybrid Score",
+                            "Why Recommended",
+                        ]
+
+                        st.dataframe(
+                            display_data,
+                            use_container_width=True,
+                            hide_index=True,
+                        )
+
+                        # ----------------------------------
+                        # RECOMMENDATION SCORE CHART
+                        # ----------------------------------
+
+                        st.markdown("### 4. Recommendation Score Analysis")
+
+                        chart_data = recommendations[
+                            ["product_name", "hybrid_score"]
+                        ].sort_values(
+                            "hybrid_score",
+                            ascending=True,
+                        )
+
+                        fig = px.bar(
+                            chart_data,
+                            x="hybrid_score",
+                            y="product_name",
+                            orientation="h",
+                            text="hybrid_score",
+                            title="Personalized Product Ranking",
+                            labels={
+                                "hybrid_score": "Hybrid Score",
+                                "product_name": "Financial Product",
+                            },
+                        )
+
+                        fig.update_traces(
+                            texttemplate="%{text:.3f}",
+                            textposition="outside",
+                        )
+
+                        fig.update_layout(
+                            height=max(350, total_recommendations * 55),
+                            showlegend=False,
+                            xaxis_range=[
+                                0,
+                                max(1.1, float(chart_data["hybrid_score"].max()) * 1.15),
+                            ],
+                        )
+
+                        st.plotly_chart(
+                            fig,
+                            use_container_width=True,
+                        )
+
+                        st.caption(
+                            "Recommendations exclude previously interacted "
+                            "products and products that fail availability "
+                            "or age eligibility checks."
+                        )
 
 
 elif page == "Customer Insights":
@@ -1102,6 +1376,7 @@ elif page == "API Monitoring":
             "These monitoring records include requests generated "
             "during API testing as well as manual API usage."
         )
+
 
 else:
     st.subheader(page)
