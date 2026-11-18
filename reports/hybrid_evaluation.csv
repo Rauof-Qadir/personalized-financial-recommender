@@ -1,0 +1,2 @@
+evaluation_type,training_fraction,testing_fraction,users_evaluated,k,precision_at_k,recall_at_k,ndcg_at_k,catalog_coverage,unique_products_recommended,available_catalog_size,category_diversity
+Temporal Holdout,0.8,0.2,100,10,0.06699999999999999,0.485,0.24899287811972126,1.0,44,44,0.7773333333333332

@@ -1,0 +1,14 @@
+{
+    "evaluation_type": "Temporal Holdout",
+    "training_fraction": 0.8,
+    "testing_fraction": 0.2,
+    "users_evaluated": 100,
+    "k": 10,
+    "precision_at_k": 0.06699999999999999,
+    "recall_at_k": 0.485,
+    "ndcg_at_k": 0.24899287811972126,
+    "catalog_coverage": 1.0,
+    "unique_products_recommended": 44,
+    "available_catalog_size": 44,
+    "category_diversity": 0.7773333333333332
+}
