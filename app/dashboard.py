@@ -1,0 +1,1110 @@
+
+from pathlib import Path
+import json
+import plotly.express as px
+import pandas as pd
+import streamlit as st
+
+
+# --------------------------------------------------
+# 1. PROJECT PATHS
+# --------------------------------------------------
+
+ROOT_DIR = Path(__file__).resolve().parents[1]
+DATA_DIR = ROOT_DIR / "data" / "raw"
+REPORTS_DIR = ROOT_DIR / "reports"
+
+
+# --------------------------------------------------
+# 2. PAGE CONFIGURATION
+# --------------------------------------------------
+
+st.set_page_config(
+    page_title="FinReco | Financial Intelligence",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+
+# --------------------------------------------------
+# 3. LOAD PROJECT DATA
+# --------------------------------------------------
+
+@st.cache_data
+def load_csv(file_path):
+    if not file_path.exists():
+        return pd.DataFrame()
+
+    return pd.read_csv(file_path)
+
+
+@st.cache_data
+def load_json(file_path):
+    if not file_path.exists():
+        return {}
+
+    with file_path.open("r", encoding="utf-8") as file:
+        return json.load(file)
+
+
+customers = load_csv(DATA_DIR / "customers.csv")
+products = load_csv(DATA_DIR / "products.csv")
+interactions = load_csv(DATA_DIR / "interactions.csv")
+api_metrics = load_csv(REPORTS_DIR / "api_monitoring.csv")
+
+popularity = load_csv(REPORTS_DIR / "popularity_ranking.csv")
+hybrid_recommendations = load_csv(
+    REPORTS_DIR / "hybrid_recommendations.csv"
+)
+
+evaluation = load_json(REPORTS_DIR / "hybrid_evaluation.json")
+quality_report = load_json(REPORTS_DIR / "data_quality_report.json")
+
+
+# --------------------------------------------------
+# 4. SIDEBAR
+# --------------------------------------------------
+
+st.sidebar.title("FinReco")
+st.sidebar.caption("Financial Product Intelligence Platform")
+
+page = st.sidebar.radio(
+    "Navigation",
+    [
+        "Executive Overview",
+        "Recommendation Analytics",
+        "Customer Insights",
+        "Product Analytics",
+        "API Monitoring",
+    ],
+)
+
+st.sidebar.divider()
+st.sidebar.caption("Version 1.0 | Portfolio Project")
+
+
+# --------------------------------------------------
+# 5. DASHBOARD HEADER
+# --------------------------------------------------
+
+st.title("Financial Recommendation Intelligence")
+st.caption(
+    "A data-driven platform for personalized financial "
+    "product recommendations and system monitoring."
+)
+
+st.divider()
+
+
+# --------------------------------------------------
+# 6. EXECUTIVE OVERVIEW
+# --------------------------------------------------
+
+if page == "Executive Overview":
+
+    st.subheader("Executive Overview")
+
+    total_customers = len(customers)
+    total_products = len(products)
+    available_products = int(products["available"].sum())
+    total_interactions = len(interactions)
+
+    consented_customers = (
+        int(customers["consent"].sum())
+        if "consent" in customers.columns
+        else 0
+    )
+
+    total_requests = len(api_metrics)
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("Total Customers", f"{total_customers:,}")
+    col2.metric("Available Products", f"{available_products:,}")
+    col3.metric("Interactions", f"{total_interactions:,}")
+    col4.metric("Consented Customers", f"{consented_customers:,}")
+
+    st.divider()
+
+
+    st.subheader("Recommendation Model Performance")
+
+    metric_columns = st.columns(4)
+
+    metric_columns[0].metric(
+        "Precision @ 10",
+        f"{evaluation.get('precision_at_k', 0):.3f}",
+    )
+
+    metric_columns[1].metric(
+        "Recall @ 10",
+        f"{evaluation.get('recall_at_k', 0):.3f}",
+    )
+
+    metric_columns[2].metric(
+        "NDCG @ 10",
+        f"{evaluation.get('ndcg_at_k', 0):.3f}",
+    )
+
+    metric_columns[3].metric(
+        "Category Diversity",
+        f"{evaluation.get('category_diversity', 0):.3f}",
+    )
+
+    st.caption(
+        "Metrics represent offline evaluation on a synthetic "
+        "temporal holdout dataset, not live business outcomes."
+    )
+
+    st.divider()
+
+    st.subheader("Dataset Health")
+
+    health_col1, health_col2, health_col3 = st.columns(3)
+
+    health_col1.metric(
+        "Customer Records",
+        f"{len(customers):,}",
+    )
+
+    health_col2.metric(
+        "Product Records",
+        f"{len(products):,}",
+    )
+
+    health_col3.metric(
+        "API Requests Recorded",
+        f"{total_requests:,}",
+    )
+
+    st.success("Dashboard data sources loaded successfully.")
+
+
+# --------------------------------------------------
+# 7. OTHER PAGES — UNDER DEVELOPMENT
+# --------------------------------------------------
+
+
+elif page == "Recommendation Analytics":
+
+    st.subheader("Recommendation Analytics")
+    st.caption(
+        "Offline recommendation analysis using the project's "
+        "synthetic financial dataset."
+    )
+
+    # ----------------------------------------------
+    # MODEL EVALUATION KPIs
+    # ----------------------------------------------
+
+    metric_cols = st.columns(4)
+
+    metric_cols[0].metric(
+        "Precision @ 10",
+        f"{evaluation.get('precision_at_k', 0):.3f}",
+    )
+
+    metric_cols[1].metric(
+        "Recall @ 10",
+        f"{evaluation.get('recall_at_k', 0):.3f}",
+    )
+
+    metric_cols[2].metric(
+        "NDCG @ 10",
+        f"{evaluation.get('ndcg_at_k', 0):.3f}",
+    )
+
+    metric_cols[3].metric(
+        "Catalog Coverage",
+        f"{evaluation.get('catalog_coverage', 0):.1%}",
+    )
+
+    st.caption(
+        "Evaluation uses a temporal holdout: 80% training "
+        "and 20% testing across 100 evaluated users."
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # TOP POPULAR PRODUCTS
+    # ----------------------------------------------
+
+    st.subheader("Most Popular Financial Products")
+
+    if not popularity.empty:
+
+        top_products = popularity.nlargest(
+            10, "interaction_count"
+        ).sort_values("interaction_count", ascending=True)
+
+        fig_popularity = px.bar(
+            top_products,
+            x="interaction_count",
+            y="product_name",
+            color="category",
+            orientation="h",
+            text="interaction_count",
+            title="Top 10 Products by Interaction Count",
+            labels={
+                "interaction_count": "Interactions",
+                "product_name": "Financial Product",
+                "category": "Category",
+            },
+        )
+
+        fig_popularity.update_layout(
+            height=480,
+            yaxis_title="",
+            legend_title="Category",
+        )
+
+        st.plotly_chart(
+            fig_popularity,
+            use_container_width=True,
+        )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # HYBRID RECOMMENDATION SCORES
+    # ----------------------------------------------
+
+    st.subheader("Hybrid Recommendation Score Analysis")
+
+    if not hybrid_recommendations.empty:
+
+        score_data = hybrid_recommendations.melt(
+            id_vars=["product_name"],
+            value_vars=[
+                "popularity_score",
+                "similarity_score",
+                "collaborative_score",
+                "hybrid_score",
+            ],
+            var_name="Scoring Method",
+            value_name="Score",
+        )
+
+        fig_scores = px.bar(
+            score_data,
+            x="product_name",
+            y="Score",
+            color="Scoring Method",
+            barmode="group",
+            title="Recommendation Signal Comparison",
+            labels={
+                "product_name": "Financial Product",
+                "Score": "Normalized Score",
+            },
+        )
+
+        fig_scores.update_layout(
+            height=500,
+            xaxis_title="",
+            yaxis_range=[0, 1.05],
+            legend_title="Scoring Method",
+        )
+
+        st.plotly_chart(
+            fig_scores,
+            use_container_width=True,
+        )
+
+        st.caption(
+            "These are the saved hybrid recommendation results, "
+            "not a per-user or population-wide performance breakdown."
+        )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # PRODUCT CATEGORY DISTRIBUTION
+    # ----------------------------------------------
+
+    st.subheader("Financial Product Category Distribution")
+
+    if not products.empty:
+
+        available_data = products[
+            products["available"] == True
+        ]
+
+        category_data = (
+            available_data["category"]
+            .value_counts()
+            .reset_index()
+        )
+
+        category_data.columns = ["Category", "Products"]
+
+        fig_category = px.pie(
+            category_data,
+            names="Category",
+            values="Products",
+            hole=0.45,
+            title="Available Products by Category",
+        )
+
+        fig_category.update_layout(height=450)
+
+        st.plotly_chart(
+            fig_category,
+            use_container_width=True,
+        )
+
+
+elif page == "Customer Insights":
+
+    st.subheader("Customer Insights")
+    st.caption(
+        "Understand customer segments, demographics, consent "
+        "and financial product interaction behavior."
+    )
+
+    # ----------------------------------------------
+    # CUSTOMER KPIs
+    # ----------------------------------------------
+
+    total_customers = len(customers)
+    consented = int(customers["consent"].sum())
+    non_consented = total_customers - consented
+
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+
+    kpi1.metric("Total Customers", f"{total_customers:,}")
+    kpi2.metric("Consented", f"{consented:,}")
+    kpi3.metric("Non-Consented", f"{non_consented:,}")
+    kpi4.metric(
+        "Consent Rate",
+        f"{consented / total_customers:.1%}"
+        if total_customers else "0%",
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # CUSTOMER SEGMENTS
+    # ----------------------------------------------
+
+    st.subheader("Customer Segment Distribution")
+
+    segment_data = (
+        customers["customer_segment"]
+        .value_counts()
+        .reset_index()
+    )
+
+    segment_data.columns = ["Customer Segment", "Customers"]
+
+    fig_segments = px.bar(
+        segment_data,
+        x="Customer Segment",
+        y="Customers",
+        color="Customer Segment",
+        text="Customers",
+        title="Customer Distribution by Segment",
+    )
+
+    fig_segments.update_layout(
+        height=420,
+        showlegend=False,
+        xaxis_title="",
+    )
+
+    st.plotly_chart(
+        fig_segments,
+        use_container_width=True,
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # AGE DISTRIBUTION
+    # ----------------------------------------------
+
+    st.subheader("Customer Age Distribution")
+
+    age_data = (
+        customers["age_group"]
+        .value_counts()
+        .reindex(
+            ["18-24", "25-34", "35-44", "45-54", "55+"],
+            fill_value=0,
+        )
+        .reset_index()
+    )
+
+    age_data.columns = ["Age Group", "Customers"]
+
+    fig_age = px.bar(
+        age_data,
+        x="Age Group",
+        y="Customers",
+        color="Age Group",
+        text="Customers",
+        title="Customer Distribution by Age Group",
+    )
+
+    fig_age.update_layout(
+        height=400,
+        showlegend=False,
+        xaxis_title="",
+    )
+
+    st.plotly_chart(
+        fig_age,
+        use_container_width=True,
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # CONSENT ANALYSIS
+    # ----------------------------------------------
+
+    st.subheader("Customer Consent Analysis")
+
+    consent_data = pd.DataFrame({
+        "Consent Status": ["Consented", "Not Consented"],
+        "Customers": [consented, non_consented],
+    })
+
+    fig_consent = px.pie(
+        consent_data,
+        names="Consent Status",
+        values="Customers",
+        hole=0.5,
+        title="Customer Consent Distribution",
+    )
+
+    fig_consent.update_layout(height=420)
+
+    st.plotly_chart(
+        fig_consent,
+        use_container_width=True,
+    )
+
+    st.caption(
+        "Consent status is shown as a customer-level data attribute. "
+        "Recommendations must respect this preference."
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # INTERACTION BEHAVIOR
+    # ----------------------------------------------
+
+    st.subheader("Customer Interaction Behavior")
+
+    event_data = (
+        interactions["event_type"]
+        .value_counts()
+        .reindex(
+            ["view", "click", "save", "enroll"],
+            fill_value=0,
+        )
+        .reset_index()
+    )
+
+    event_data.columns = ["Event Type", "Interactions"]
+
+    fig_events = px.bar(
+        event_data,
+        x="Event Type",
+        y="Interactions",
+        color="Event Type",
+        text="Interactions",
+        title="Customer Engagement by Event Type",
+    )
+
+    fig_events.update_layout(
+        height=420,
+        showlegend=False,
+        xaxis_title="",
+    )
+
+    st.plotly_chart(
+        fig_events,
+        use_container_width=True,
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # CUSTOMER ACTIVITY OVER TIME
+    # ----------------------------------------------
+
+    st.subheader("Customer Activity Trend")
+
+    activity_data = interactions.copy()
+
+    activity_data["timestamp"] = pd.to_datetime(
+        activity_data["timestamp"]
+    )
+
+    daily_activity = (
+        activity_data
+        .set_index("timestamp")
+        .resample("D")
+        .size()
+        .reset_index(name="Interactions")
+    )
+
+    fig_activity = px.line(
+        daily_activity,
+        x="timestamp",
+        y="Interactions",
+        markers=True,
+        title="Daily Customer Interactions",
+        labels={
+            "timestamp": "Date",
+            "Interactions": "Total Interactions",
+        },
+    )
+
+    fig_activity.update_layout(height=420)
+
+    st.plotly_chart(
+        fig_activity,
+        use_container_width=True,
+    )
+
+
+elif page == "Product Analytics":
+
+    st.subheader("Product Analytics")
+    st.caption(
+        "Analyze financial product availability, category mix, "
+        "popularity and customer engagement."
+    )
+
+    # ----------------------------------------------
+    # PRODUCT KPIs
+    # ----------------------------------------------
+
+    total_products = len(products)
+    available_count = int(products["available"].sum())
+    unavailable_count = total_products - available_count
+    total_categories = products["category"].nunique()
+
+    kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+
+    kpi1.metric("Total Products", f"{total_products:,}")
+    kpi2.metric("Available Products", f"{available_count:,}")
+    kpi3.metric("Unavailable Products", f"{unavailable_count:,}")
+    kpi4.metric("Product Categories", f"{total_categories:,}")
+
+    st.divider()
+
+    # ----------------------------------------------
+    # CATEGORY FILTER
+    # ----------------------------------------------
+
+    st.subheader("Product Catalog Explorer")
+
+    categories = ["All Categories"] + sorted(
+        products["category"].dropna().unique().tolist()
+    )
+
+    selected_category = st.selectbox(
+        "Filter by Product Category",
+        categories,
+    )
+
+    if selected_category == "All Categories":
+        filtered_products = products.copy()
+    else:
+        filtered_products = products[
+            products["category"] == selected_category
+        ].copy()
+
+    st.caption(
+        f"Showing {len(filtered_products)} products"
+    )
+
+    st.dataframe(
+        filtered_products[
+            [
+                "item_id",
+                "product_name",
+                "category",
+                "available",
+                "minimum_age",
+            ]
+        ],
+        use_container_width=True,
+        hide_index=True,
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # CATEGORY DISTRIBUTION
+    # ----------------------------------------------
+
+    st.subheader("Product Category Distribution")
+
+    category_data = (
+        products["category"]
+        .value_counts()
+        .reset_index()
+    )
+
+    category_data.columns = ["Category", "Products"]
+
+    fig_categories = px.bar(
+        category_data,
+        x="Category",
+        y="Products",
+        color="Category",
+        text="Products",
+        title="Financial Products by Category",
+    )
+
+    fig_categories.update_layout(
+        height=420,
+        showlegend=False,
+        xaxis_title="",
+    )
+
+    st.plotly_chart(
+        fig_categories,
+        use_container_width=True,
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # PRODUCT AVAILABILITY
+    # ----------------------------------------------
+
+    st.subheader("Product Availability Analysis")
+
+    availability_data = pd.DataFrame({
+        "Availability": ["Available", "Unavailable"],
+        "Products": [available_count, unavailable_count],
+    })
+
+    fig_availability = px.pie(
+        availability_data,
+        names="Availability",
+        values="Products",
+        hole=0.5,
+        title="Product Availability Distribution",
+    )
+
+    fig_availability.update_layout(height=420)
+
+    st.plotly_chart(
+        fig_availability,
+        use_container_width=True,
+    )
+
+    st.divider()
+
+    # ----------------------------------------------
+    # TOP POPULAR PRODUCTS
+    # ----------------------------------------------
+
+    st.subheader("Top 10 Popular Financial Products")
+
+    if not popularity.empty:
+
+        filtered_popularity = popularity.copy()
+
+        if selected_category != "All Categories":
+            filtered_popularity = filtered_popularity[
+                filtered_popularity["category"] == selected_category
+            ]
+
+        top_products = (
+            filtered_popularity
+            .nlargest(10, "interaction_count")
+            .sort_values("interaction_count", ascending=True)
+        )
+
+        if not top_products.empty:
+
+            fig_popular = px.bar(
+                top_products,
+                x="interaction_count",
+                y="product_name",
+                color="category",
+                orientation="h",
+                text="interaction_count",
+                title="Products Ranked by Customer Interactions",
+                labels={
+                    "interaction_count": "Total Interactions",
+                    "product_name": "Financial Product",
+                    "category": "Category",
+                },
+            )
+
+            fig_popular.update_layout(
+                height=480,
+                yaxis_title="",
+                legend_title="Category",
+            )
+
+            st.plotly_chart(
+                fig_popular,
+                use_container_width=True,
+            )
+
+        else:
+            st.info("No popularity data available for this category.")
+
+    st.divider()
+
+    # ----------------------------------------------
+    # PRODUCT ENGAGEMENT TABLE
+    # ----------------------------------------------
+
+    st.subheader("Product Engagement Performance")
+
+    if not popularity.empty:
+
+        engagement_data = popularity.copy()
+
+        if selected_category != "All Categories":
+            engagement_data = engagement_data[
+                engagement_data["category"] == selected_category
+            ]
+
+        engagement_data = engagement_data.sort_values(
+            "interaction_count",
+            ascending=False,
+        )
+
+        st.dataframe(
+            engagement_data[
+                [
+                    "item_id",
+                    "product_name",
+                    "category",
+                    "interaction_count",
+                    "unique_users",
+                    "popularity_score",
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        st.caption(
+            "Interaction count measures recorded events, while "
+            "unique users measures distinct customers interacting "
+            "with each product. These are engagement indicators, "
+            "not confirmed purchases."
+        )
+
+
+elif page == "API Monitoring":
+
+    st.subheader("API Performance Monitoring")
+    st.caption(
+        "Monitor recommendation API latency, reliability, "
+        "HTTP responses and recommendation caching."
+    )
+
+    # ----------------------------------------------
+    # CHECK MONITORING DATA
+    # ----------------------------------------------
+
+    if api_metrics.empty:
+
+        st.warning(
+            "No API monitoring data found. "
+            "Send requests to the recommendation API first."
+        )
+
+    else:
+
+        monitoring = api_metrics.copy()
+
+        monitoring["timestamp"] = pd.to_datetime(
+            monitoring["timestamp"],
+            utc=True,
+        )
+
+        monitoring["response_time_ms"] = pd.to_numeric(
+            monitoring["response_time_ms"],
+            errors="coerce",
+        )
+
+        monitoring["status_code"] = pd.to_numeric(
+            monitoring["status_code"],
+            errors="coerce",
+        )
+
+        monitoring["cache_hit"] = (
+            monitoring["cache_hit"]
+            .astype(str)
+            .str.lower()
+            .map({"true": True, "false": False})
+        )
+
+        monitoring = monitoring.dropna(
+            subset=["timestamp", "response_time_ms", "status_code"]
+        )
+
+        # ------------------------------------------
+        # API PERFORMANCE KPIs
+        # ------------------------------------------
+
+        total_requests = len(monitoring)
+
+        successful_requests = int(
+            monitoring["status_code"].between(200, 299).sum()
+        )
+
+        failed_requests = total_requests - successful_requests
+
+        avg_response_time = monitoring[
+            "response_time_ms"
+        ].mean()
+
+        p95_response_time = monitoring[
+            "response_time_ms"
+        ].quantile(0.95)
+
+        success_rate = (
+            successful_requests / total_requests
+            if total_requests else 0
+        )
+
+        cache_hits = int(
+            monitoring["cache_hit"].eq(True).sum()
+        )
+
+        cache_misses = int(
+            monitoring["cache_hit"].eq(False).sum()
+        )
+
+        cache_requests = cache_hits + cache_misses
+
+        cache_hit_rate = (
+            cache_hits / cache_requests
+            if cache_requests else 0
+        )
+
+        # ------------------------------------------
+        # KPI CARDS
+        # ------------------------------------------
+
+        st.subheader("API Performance Overview")
+
+        kpi1, kpi2, kpi3 = st.columns(3)
+
+        kpi1.metric(
+            "Total Requests",
+            f"{total_requests:,}",
+        )
+
+        kpi2.metric(
+            "Average Response Time",
+            f"{avg_response_time:.2f} ms",
+        )
+
+        kpi3.metric(
+            "P95 Response Time",
+            f"{p95_response_time:.2f} ms",
+        )
+
+        kpi4, kpi5, kpi6 = st.columns(3)
+
+        kpi4.metric(
+            "Success Rate",
+            f"{success_rate:.1%}",
+        )
+
+        kpi5.metric(
+            "Failed Requests",
+            f"{failed_requests:,}",
+        )
+
+        kpi6.metric(
+            "Cache Hit Rate",
+            f"{cache_hit_rate:.1%}",
+        )
+
+        st.divider()
+
+        # ------------------------------------------
+        # RESPONSE TIME TREND
+        # ------------------------------------------
+
+        st.subheader("API Response Time Trend")
+
+        response_data = monitoring.sort_values("timestamp")
+
+        fig_response = px.line(
+            response_data,
+            x="timestamp",
+            y="response_time_ms",
+            markers=True,
+            title="Response Time per API Request",
+            labels={
+                "timestamp": "Request Time (UTC)",
+                "response_time_ms": "Response Time (ms)",
+            },
+        )
+
+        fig_response.update_layout(height=420)
+
+        st.plotly_chart(
+            fig_response,
+            use_container_width=True,
+        )
+
+        st.divider()
+
+        # ------------------------------------------
+        # HTTP STATUS DISTRIBUTION
+        # ------------------------------------------
+
+        st.subheader("HTTP Status Code Distribution")
+
+        status_data = (
+            monitoring["status_code"]
+            .astype(int)
+            .value_counts()
+            .sort_index()
+            .reset_index()
+        )
+
+        status_data.columns = ["Status Code", "Requests"]
+
+        fig_status = px.bar(
+            status_data,
+            x="Status Code",
+            y="Requests",
+            color="Status Code",
+            text="Requests",
+            title="API Requests by HTTP Status Code",
+        )
+
+        fig_status.update_layout(
+            height=400,
+            showlegend=False,
+        )
+
+        st.plotly_chart(
+            fig_status,
+            use_container_width=True,
+        )
+
+        st.divider()
+
+        # ------------------------------------------
+        # CACHE PERFORMANCE
+        # ------------------------------------------
+
+        st.subheader("Recommendation Cache Performance")
+
+        cache_col1, cache_col2 = st.columns(2)
+
+        cache_data = pd.DataFrame({
+            "Cache Status": ["Cache Hits", "Cache Misses"],
+            "Requests": [cache_hits, cache_misses],
+        })
+
+        fig_cache = px.pie(
+            cache_data,
+            names="Cache Status",
+            values="Requests",
+            hole=0.5,
+            title="Cache Hit vs Cache Miss",
+        )
+
+        fig_cache.update_layout(height=400)
+
+        cache_col1.plotly_chart(
+            fig_cache,
+            use_container_width=True,
+        )
+
+        cache_comparison = (
+            monitoring[monitoring["cache_hit"].isin([True, False])]
+            .groupby("cache_hit")["response_time_ms"]
+            .mean()
+            .reset_index()
+        )
+
+        cache_comparison["Cache Status"] = (
+            cache_comparison["cache_hit"]
+            .map({True: "Cache Hit", False: "Cache Miss"})
+        )
+
+        fig_cache_time = px.bar(
+            cache_comparison,
+            x="Cache Status",
+            y="response_time_ms",
+            color="Cache Status",
+            text_auto=".2f",
+            title="Average Response Time by Cache Status",
+            labels={
+                "response_time_ms": "Average Response Time (ms)",
+            },
+        )
+
+        fig_cache_time.update_layout(
+            height=400,
+            showlegend=False,
+        )
+
+        cache_col2.plotly_chart(
+            fig_cache_time,
+            use_container_width=True,
+        )
+
+        st.caption(
+            "Cache performance is measured from recorded API requests. "
+            "Latency comparisons are observational, not controlled benchmarks."
+        )
+
+        st.divider()
+
+        # ------------------------------------------
+        # RECENT API REQUESTS
+        # ------------------------------------------
+
+        st.subheader("Recent API Request Logs")
+
+        recent_requests = monitoring.sort_values(
+            "timestamp",
+            ascending=False,
+        ).head(20).copy()
+
+        recent_requests["timestamp"] = (
+            recent_requests["timestamp"]
+            .dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+        )
+
+        st.dataframe(
+            recent_requests[
+                [
+                    "timestamp",
+                    "status_code",
+                    "response_time_ms",
+                    "cache_hit",
+                    "recommendation_count",
+                ]
+            ],
+            use_container_width=True,
+            hide_index=True,
+        )
+
+        st.caption(
+            "These monitoring records include requests generated "
+            "during API testing as well as manual API usage."
+        )
+
+else:
+    st.subheader(page)
+    st.info("This analytics section will be implemented in the next steps.")
+
+
