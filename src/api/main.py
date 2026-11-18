@@ -1,6 +1,6 @@
 
 from pathlib import Path
-
+import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 
@@ -10,6 +10,9 @@ from src.recommenders.hybrid import recommend_hybrid
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 RAW_DIR = ROOT_DIR / "data" / "raw"
+
+MODELS_DIR = ROOT_DIR / "models"
+ARTIFACT_PATH = MODELS_DIR / "recommender_artifacts.joblib"
 
 
 app = FastAPI(
@@ -26,7 +29,8 @@ interactions = pd.read_csv(
     RAW_DIR / "interactions.csv",
     parse_dates=["timestamp"],
 )
-
+# Load precomputed recommendation components once at API startup.
+artifacts = joblib.load(ARTIFACT_PATH)
 
 @app.get("/")
 def home():
@@ -47,6 +51,7 @@ def get_recommendations(request: RecommendationRequest):
             products=products,
             interactions=interactions,
             k=request.limit,
+            artifacts=artifacts,
         )
 
         return {

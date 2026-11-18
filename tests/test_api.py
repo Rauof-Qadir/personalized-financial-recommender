@@ -2,7 +2,7 @@
 from fastapi.testclient import TestClient
 
 from src.api.main import app
-
+from src.api.main import app, artifacts
 
 client = TestClient(app)
 
@@ -57,3 +57,20 @@ def test_invalid_recommendation_limit():
     )
 
     assert response.status_code == 422
+
+def test_recommender_artifacts_loaded():
+    assert artifacts is not None
+
+    required_keys = {
+        "popularity_ranking",
+        "vectorizer",
+        "item_matrix",
+        "users",
+        "items",
+        "interaction_matrix",
+    }
+
+    assert required_keys.issubset(artifacts.keys())
+    assert len(artifacts["users"]) == 850
+    assert len(artifacts["items"]) == 50
+    assert artifacts["interaction_matrix"].nnz == 12905

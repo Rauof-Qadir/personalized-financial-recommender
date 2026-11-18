@@ -1,6 +1,6 @@
 
 from pathlib import Path
-
+import joblib
 import pandas as pd
 
 from src.recommenders.popularity import (
@@ -40,6 +40,47 @@ def normalize_scores(series):
     return (series - minimum) / (maximum - minimum)
 
 
+
+def build_recommender_artifacts(customers, products, interactions):
+    """Build reusable components for all recommendation algorithms."""
+
+    popularity_ranking = build_popularity_ranking(
+        customers, products, interactions
+    )
+
+    vectorizer, item_matrix = build_item_matrix(products)
+
+    users, items, interaction_matrix = build_interaction_matrix(
+        customers, products, interactions
+    )
+
+    return {
+        "popularity_ranking": popularity_ranking,
+        "vectorizer": vectorizer,
+        "item_matrix": item_matrix,
+        "users": users,
+        "items": items,
+        "interaction_matrix": interaction_matrix,
+    }
+
+
+
+def save_recommender_artifacts(artifacts):
+    """Persist reusable recommendation components."""
+
+    models_dir = ROOT / "models"
+    models_dir.mkdir(parents=True, exist_ok=True)
+
+    artifact_path = models_dir / "recommender_artifacts.joblib"
+
+    joblib.dump(artifacts, artifact_path)
+
+    print(f"Artifacts saved: {artifact_path}")
+
+    return artifact_path
+
+
+
 def recommend_hybrid(
     user_id,
     customers,
@@ -48,6 +89,7 @@ def recommend_hybrid(
     k=10,
     n_neighbors=20,
     weights=None,
+    artifacts=None,
 ):
     """Combine popularity, content, and collaborative recommendations."""
 
@@ -76,47 +118,45 @@ def recommend_hybrid(
         except (ValueError, IndexError):
             return pd.DataFrame()
 
-    # 1. Popularity recommendations
-    popularity_ranking = build_popularity_ranking(
-        customers, products, interactions
-    )
 
+    # Build artifacts only when precomputed artifacts are not supplied.
+    if artifacts is None:
+        artifacts = build_recommender_artifacts(
+            customers, products, interactions
+        )
+
+    # 1. Popularity recommendations
     popularity_results = recommend_popular(
         user_id,
         customers,
-        popularity_ranking,
+        artifacts["popularity_ranking"],
         interactions,
         k=len(products),
     )
 
     # 2. Content-based recommendations
-    vectorizer, item_matrix = build_item_matrix(products)
-
     content_results = recommend_content_based(
         user_id,
         customers,
         products,
         interactions,
-        vectorizer,
-        item_matrix,
+        artifacts["vectorizer"],
+        artifacts["item_matrix"],
         k=len(products),
     )
 
     # 3. Collaborative recommendations
-    users, items, interaction_matrix = build_interaction_matrix(
-        customers, products, interactions
-    )
-
     collaborative_results = recommend_collaborative(
         user_id,
         customers,
         products,
-        users,
-        items,
-        interaction_matrix,
+        artifacts["users"],
+        artifacts["items"],
+        artifacts["interaction_matrix"],
         k=len(products),
         n_neighbors=n_neighbors,
     )
+
 
     # Start with all products and attach each algorithm's scores.
     scores = products[["item_id"]].copy()
@@ -185,7 +225,7 @@ def recommend_hybrid(
     def explain(row):
         signals = []
 
-       
+
 
         if row["popularity_score"] > 0:
             signals.append("popular")
