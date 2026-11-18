@@ -1,13 +1,21 @@
 # FinReco — Personalized Financial Product Recommendation Engine
 
-\<p align="center">   \<strong>An Explainable, Hybrid Recommendation System for Personalized Financial Product Discovery\</strong> \</p>
+<p align="center">
+  <strong>An Explainable, Hybrid Recommendation System for Personalized Financial Product Discovery</strong>
+</p>
 
-\<p align="center">   \<img src="[https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white](https://img.shields.io/badge/Python-3.11-3776AB?logo=python\&logoColor=white)" alt="Python 3.11"/>   \<img src="[https://img.shields.io/badge/Scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white](https://img.shields.io/badge/Scikit--learn-ML-F7931E?logo=scikitlearn\&logoColor=white)" alt="Scikit-learn"/>   \<img src="[https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi\&logoColor=white)" alt="FastAPI"/>   \<img src="[https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white](https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit\&logoColor=white)" alt="Streamlit"/>   \<img src="[https://img.shields.io/badge/Tests-52%20Passed-brightgreen?logo=pytest&logoColor=white](https://img.shields.io/badge/Tests-52%20Passed-brightgreen?logo=pytest\&logoColor=white)" alt="52 tests passed"/>   \<img src="[https://img.shields.io/badge/Recommendation-Hybrid-blue](https://img.shields.io/badge/Recommendation-Hybrid-blue)" alt="Hybrid recommendation"/> \</p>
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white" alt="Python 3.11"/>
+  <img src="https://img.shields.io/badge/Scikit--learn-ML-F7931E?logo=scikitlearn&logoColor=white" alt="Scikit-learn"/>
+  <img src="https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white" alt="FastAPI"/>
+  <img src="https://img.shields.io/badge/Streamlit-Dashboard-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit"/>
+  <img src="https://img.shields.io/badge/Tests-52%20Passed-brightgreen?logo=pytest&logoColor=white" alt="52 tests passed"/>
+  <img src="https://img.shields.io/badge/Recommendation-Hybrid-blue" alt="Hybrid recommendation"/>
+</p>
 
-\<p align="center">
-&#x20; \<a href="[https://github.com/Rauof-Qadir/personalized-financial-recommender](https://github.com/Rauof-Qadir/personalized-financial-recommender)">GitHub Repository\</a>
-\</p>
-
+<p align="center">
+  <a href="https://github.com/Rauof-Qadir/personalized-financial-recommender">GitHub Repository</a>
+</p>
 ---
 
 ## Overview
