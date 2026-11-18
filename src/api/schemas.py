@@ -1,0 +1,16 @@
+
+from pydantic import BaseModel, Field
+
+
+class RecommendationRequest(BaseModel):
+    user_id: str = Field(
+        min_length=1,
+        description="Unique customer ID"
+    )
+
+    limit: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Maximum recommendations to return"
+    )

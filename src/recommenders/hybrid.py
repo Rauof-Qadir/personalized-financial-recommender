@@ -185,7 +185,7 @@ def recommend_hybrid(
     def explain(row):
         signals = []
 
-        signals.append("meets minimum age requirement")
+       
 
         if row["popularity_score"] > 0:
             signals.append("popular")
