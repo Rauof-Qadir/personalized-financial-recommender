@@ -64,6 +64,18 @@ def recommend_hybrid(
     if customer.empty or not bool(customer.iloc[0]["consent"]):
         return pd.DataFrame()
 
+        # Determine the customer's minimum known age.
+        # Apply age eligibility when age information is available.
+    customer_min_age = None
+
+    if "age_group" in customers.columns:
+        age_group = str(customer.iloc[0]["age_group"])
+
+        try:
+            customer_min_age = int(age_group.split("-")[0].rstrip("+"))
+        except (ValueError, IndexError):
+            return pd.DataFrame()
+
     # 1. Popularity recommendations
     popularity_ranking = build_popularity_ranking(
         customers, products, interactions
@@ -143,10 +155,27 @@ def recommend_hybrid(
         ]
     )
 
+        # Apply availability, history, and age eligibility rules.
+    results["minimum_age"] = pd.to_numeric(
+        results["minimum_age"], errors="coerce"
+    )
+
+        # Apply availability and seen-item rules.
     results = results[
         results["available"].eq(True)
         & ~results["item_id"].isin(seen_items)
     ].copy()
+
+    # Apply age eligibility when customer age is known.
+    if customer_min_age is not None:
+        results["minimum_age"] = pd.to_numeric(
+            results["minimum_age"], errors="coerce"
+        )
+
+        results = results[
+            results["minimum_age"].notna()
+            & results["minimum_age"].le(customer_min_age)
+        ].copy()
 
     results = results.sort_values(
         ["hybrid_score", "item_id"],
@@ -155,6 +184,8 @@ def recommend_hybrid(
 
     def explain(row):
         signals = []
+
+        signals.append("meets minimum age requirement")
 
         if row["popularity_score"] > 0:
             signals.append("popular")
