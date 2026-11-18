@@ -1,0 +1,60 @@
+{
+    "project": "Personalized Financial Product Recommendation Engine",
+    "dataset_type": "Synthetic",
+    "quality_status": "PASS",
+    "dataset_quality": {
+        "customers": {
+            "rows": 1000,
+            "columns": 5,
+            "missing_values": 0,
+            "duplicate_rows": 0,
+            "duplicate_user_ids": 0
+        },
+        "products": {
+            "rows": 50,
+            "columns": 7,
+            "missing_values": 0,
+            "duplicate_rows": 0,
+            "duplicate_item_ids": 0
+        },
+        "interactions": {
+            "rows": 20000,
+            "columns": 4,
+            "missing_values": 0,
+            "duplicate_rows": 0,
+            "invalid_timestamps": 0
+        }
+    },
+    "relationship_validation": {
+        "unknown_user_references": 0,
+        "unknown_product_references": 0,
+        "invalid_event_types": 0,
+        "unique_interaction_pairs": 15185,
+        "possible_user_item_pairs": 50000,
+        "interaction_density_percent": 30.37
+    },
+    "business_summary": {
+        "event_distribution": {
+            "view": 10967,
+            "click": 5088,
+            "save": 2523,
+            "enroll": 1422
+        },
+        "category_distribution": {
+            "savings": 9,
+            "budgeting": 9,
+            "credit": 8,
+            "investing": 8,
+            "insurance": 8,
+            "financial_planning": 8
+        },
+        "consent_distribution": {
+            "True": 850,
+            "False": 150
+        },
+        "availability_distribution": {
+            "True": 44,
+            "False": 6
+        }
+    }
+}
