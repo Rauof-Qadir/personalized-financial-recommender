@@ -1,6 +1,8 @@
 
 from fastapi.testclient import TestClient
-
+from src.utils.recommendation_cache import (
+    clear_recommendation_cache,
+)
 from src.api.main import app
 from src.api.main import app, artifacts
 
@@ -74,3 +76,34 @@ def test_recommender_artifacts_loaded():
     assert len(artifacts["users"]) == 850
     assert len(artifacts["items"]) == 50
     assert artifacts["interaction_matrix"].nnz == 12905
+
+
+
+def test_recommendation_cache_hit_and_miss():
+    clear_recommendation_cache()
+
+    payload = {
+        "user_id": "U00003",
+        "limit": 5,
+    }
+
+    # First request should generate recommendations.
+    first_response = client.post("/recommend", json=payload)
+
+    assert first_response.status_code == 200
+    assert first_response.json()["cache_hit"] is False
+
+    # Second request should return cached recommendations.
+    second_response = client.post("/recommend", json=payload)
+
+    assert second_response.status_code == 200
+    assert second_response.json()["cache_hit"] is True
+
+    # Both responses should contain identical recommendations.
+    assert (
+        first_response.json()["recommendations"]
+        == second_response.json()["recommendations"]
+    )
+
+    clear_recommendation_cache()
+

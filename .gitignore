@@ -14,3 +14,7 @@ data/processed/*
 !data/processed/.gitkeep
 models/*
 !models/.gitkeep
+
+# Application logs
+logs/
+*.log
