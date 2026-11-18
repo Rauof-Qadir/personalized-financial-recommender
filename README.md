@@ -14,6 +14,11 @@
 </p>
 
 
+## Dashboard
+
+![1](docs/d1.png)
+![2](docs/d2.png)
+![3](docs/d3.png)
 
 ## Overview
 
